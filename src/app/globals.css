@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #1a1a2e;
+  --accent: #e94560;
+  --accent2: #0f3460;
+  --gold: #f5a623;
+  --teal: #16213e;
+  --light: #f8f9fa;
+  --muted: #6c757d;
+  --success: #28a745;
+  --warning: #ffc107;
+  --danger: #dc3545;
+  --card-bg: #ffffff;
+  --border: #e0e0e0;
+  --text: #2d3748;
+  --sidebar-w: 220px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; color: var(--text); }
+
+/* Tags */
+.tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.68rem; font-weight: 600; }
+.tag-success { background: #d4edda; color: #155724; }
+.tag-warning { background: #fff3cd; color: #856404; }
+.tag-danger { background: #f8d7da; color: #721c24; }
+.tag-info { background: #d1ecf1; color: #0c5460; }
+.tag-primary { background: #cce5ff; color: #004085; }
+.tag-purple { background: #e2d9f3; color: #6610f2; }
+.tag-gold { background: #fff8e1; color: #e65100; }
+
+/* Progress bars */
+.progress-bar { background: #e9ecef; border-radius: 6px; height: 8px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 6px; transition: width 0.4s; }
+.fill-success { background: var(--success); }
+.fill-warning { background: var(--warning); }
+.fill-danger { background: var(--danger); }
+.fill-accent { background: var(--accent); }
+.fill-blue { background: var(--accent2); }
+.fill-gold { background: var(--gold); }
+
+/* Table row alerts */
+tr.row-alert > td { background: #fff1f0 !important; box-shadow: inset 3px 0 0 var(--danger); }
+tr.row-warn > td { background: #fffbe6 !important; box-shadow: inset 3px 0 0 var(--warning); }
+
+/* Alert dot */
+.alert-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+.alert-dot.red { background: var(--danger); animation: pulse 1.4s infinite; }
+.alert-dot.amber { background: var(--warning); }
+
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+
+/* Toast */
+.toast-enter { animation: toastIn 0.3s ease; }
+@keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Freq badge */
+.freq-badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.66rem; font-weight: 700; }
+.freq-badge.Harian { background: #d1ecf1; color: #0c5460; }
+.freq-badge.Mingguan { background: #d4edda; color: #155724; }
+.freq-badge.Bulanan { background: #fff3cd; color: #856404; }
+.freq-badge.Tahunan { background: #e2d9f3; color: #6610f2; }
