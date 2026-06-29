@@ -1,4 +1,5 @@
 'use client'
+
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import type { Lead, ChannelCost, ContentTracking } from '@/types/database'
