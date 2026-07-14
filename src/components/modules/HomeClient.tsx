@@ -33,36 +33,36 @@ export default function HomeClient() {
       { data: kritis },
       { data: mitigasi },
     ] = await Promise.all([
-      supabase.from('b2b_clients').select('*'),
-      supabase.from('rekrutmen').select('*'),
-      supabase.from('batch_offline').select('status'),
-      supabase.from('batch_online').select('status'),
-      supabase.from('leads').select('*'),
-      supabase.from('forecast').select('*'),
-      supabase.from('cashflow').select('*'),
-      supabase.from('b2b_checklist').select('*'),
-      supabase.from('kritis').select('*'),
-      supabase.from('mitigasi').select('*'),
+      (supabase.from('b2b_clients') as any).select('*'),
+      (supabase.from('rekrutmen') as any).select('*'),
+      (supabase.from('batch_offline') as any).select('status'),
+      (supabase.from('batch_online') as any).select('status'),
+      (supabase.from('leads') as any).select('*'),
+      (supabase.from('forecast') as any).select('*'),
+      (supabase.from('cashflow') as any).select('*'),
+      (supabase.from('b2b_checklist') as any).select('*'),
+      (supabase.from('kritis') as any).select('*'),
+      (supabase.from('mitigasi') as any).select('*'),
     ])
 
     // KPIs
-    const klienAktif = (clients || []).filter(c => c.status === 'Aktif').length
+    const klienAktif = (clients || []).filter((c: any) => c.status === 'Aktif').length
     const total = (rekrutmen || []).length
-    const terp = (rekrutmen || []).filter(r => r.tahap === 'Selesai').length
+    const terp = (rekrutmen || []).filter((r: any) => r.tahap === 'Selesai').length
     const posisiTerpenuhi = total ? Math.round(terp / total * 100) + '%' : '0%'
 
     const allBatches = [...(batches_off || []), ...(batches_on || [])]
-    const coursePipeline = allBatches.filter(b => ['Pipeline','Akan Datang'].includes(b.status)).length
+    const coursePipeline = allBatches.filter((b: any) => ['Pipeline','Akan Datang'].includes(b.status)).length
 
     // Revenue this month
     const thisMonth = new Date().toISOString().slice(0, 7)
     const revBulanIni = (cashflow || [])
-      .filter(c => c.tanggal.startsWith(thisMonth) && c.tipe === 'Revenue')
-      .reduce((s, c) => s + Number(c.nominal), 0)
+      .filter((c: any) => c.tanggal.startsWith(thisMonth) && c.tipe === 'Revenue')
+      .reduce((s: number, c: any) => s + Number(c.nominal), 0)
 
     // Hot leads overdue
     let hotOver = 0
-    ;(leads || []).forEach(l => {
+    ;(leads || []).forEach((l: any) => {
       const s = scoreLead({ channel: l.channel, last_interaction: l.last_interaction, stage: l.stage })
       const t = tempLead(s)
       const d = daysSince(l.last_interaction)
@@ -70,31 +70,31 @@ export default function HomeClient() {
     })
 
     // Forecast totals
-    const totalTarget = (forecast || []).reduce((s, r) => s + Number(r.target), 0)
-    const totalReal = (forecast || []).reduce((s, r) => s + Number(r.real), 0)
+    const totalTarget = (forecast || []).reduce((s: number, r: any) => s + Number(r.target), 0)
+    const totalReal = (forecast || []).reduce((s: number, r: any) => s + Number(r.real), 0)
 
     // Per divisi target
     const map: Record<string, { target: number; real: number }> = {}
-    ;(forecast || []).forEach(r => {
+    ;(forecast || []).forEach((r: any) => {
       if (!map[r.divisi]) map[r.divisi] = { target: 0, real: 0 }
       map[r.divisi].target += Number(r.target)
       map[r.divisi].real += Number(r.real)
     })
-    const perDivisi = Object.entries(map).map(([divisi, v]) => ({
+    const perDivisi = Object.entries(map).map(([divisi, v]: any) => ({
       divisi, pct: v.target ? Math.round(v.real / v.target * 100) : 0,
       target: v.target, real: v.real,
     }))
 
     // Checklist overdue
     const today = new Date()
-    const chkOverdue = (checklist || []).filter(c => {
+    const chkOverdue = (checklist || []).filter((c: any) => {
       if (c.status === 'Selesai Acc' || !c.target_date) return false
       return new Date(c.target_date) < today
     }).length
 
     // Burn / runway
     const byMonth: Record<string, { rev: number; exp: number }> = {}
-    ;(cashflow || []).forEach(c => {
+    ;(cashflow || []).forEach((c: any) => {
       const mk = c.tanggal.slice(0, 7)
       if (!byMonth[mk]) byMonth[mk] = { rev: 0, exp: 0 }
       if (c.tipe === 'Revenue') byMonth[mk].rev += Number(c.nominal)
@@ -109,12 +109,12 @@ export default function HomeClient() {
     const items: typeof actionItems = []
     if (hotOver > 0) items.push({ lvl: 2, icon: '🔥', txt: `${hotOver} Hot lead diam > 7 hari`, act: 'Follow-up hari ini', href: '/marketing' })
     if (chkOverdue > 0) items.push({ lvl: 2, icon: '✅', txt: `${chkOverdue} milestone B2B overdue`, act: 'Tinjau checklist B2B', href: '/b2b-internal' })
-    ;(kritis || []).forEach(r => {
+    ;(kritis || []).forEach((r: any) => {
       if (r.deadline && new Date(r.deadline) < today)
         items.push({ lvl: 2, icon: '🚨', txt: `Posisi kritis "${r.posisi}" melewati deadline`, act: 'Headhunter → Posisi Kritis', href: '/headhunter' })
     })
-    ;(mitigasi || []).filter(r => r.status === 'Terbuka').slice(0, 3).forEach(r => {
-      items.push({ lvl: 1, icon: '🛡️', txt: `Resiko "${r.kendala}" belum ditangani`, act: 'Mitigasi Resiko', href: '/mitigasi' })
+    ;(mitigasi || []).filter((r: any) => r.status === 'Terbuka').slice(0, 3).forEach((r: any) => {
+      items.push({ lvl: 1, icon: '🛡️', txt: `Resiko "${r.risiko}" belum ditangani`, act: 'Mitigasi Resiko', href: '/mitigasi' })
     })
 
     setStats({

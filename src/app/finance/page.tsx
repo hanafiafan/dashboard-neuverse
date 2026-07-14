@@ -23,9 +23,9 @@ export default function FinancePage() {
   useEffect(() => { loadData() }, [])
   async function loadData() {
     const [{ data: cf }, { data: fr }, { data: st }] = await Promise.all([
-      supabase.from('cashflow').select('*').order('tanggal', { ascending: false }),
-      supabase.from('fin_rekap').select('*').order('created_at'),
-      supabase.from('settings').select('*').eq('key', 'saldo_awal').single(),
+      (supabase.from('cashflow') as any).select('*').order('tanggal', { ascending: false }),
+      (supabase.from('fin_rekap') as any).select('*').order('created_at'),
+      (supabase.from('settings') as any).select('*').eq('key', 'saldo_awal').single(),
     ])
     setCashflow(cf || [])
     setFinRekap(fr || [])
@@ -33,27 +33,27 @@ export default function FinancePage() {
   }
 
   async function saveSaldoAwal(val: number) {
-    await supabase.from('settings').update({ value: String(val) }).eq('key', 'saldo_awal')
+    await (supabase.from('settings') as any).update({ value: String(val) }).eq('key', 'saldo_awal')
     setSaldoAwal(val)
   }
 
   async function saveCash() {
     const p = { tanggal: form.tanggal || todayStr(), tipe: form.tipe as any, kategori: form.kategori || '', divisi: form.divisi || '', nominal: Number(form.nominal) || 0 }
-    if (editId) await supabase.from('cashflow').update(p).eq('id', editId)
-    else await supabase.from('cashflow').insert(p)
+    if (editId) await (supabase.from('cashflow') as any).update(p).eq('id', editId)
+    else await (supabase.from('cashflow') as any).insert(p)
     setModal(null); loadData()
   }
 
   async function saveRekap() {
     const p = { divisi: form.divisi || '', masuk: Number(form.masuk) || 0, keluar: Number(form.keluar) || 0, ket: form.ket || '' }
-    if (editId) await supabase.from('fin_rekap').update(p).eq('id', editId)
-    else await supabase.from('fin_rekap').insert(p)
+    if (editId) await (supabase.from('fin_rekap') as any).update(p).eq('id', editId)
+    else await (supabase.from('fin_rekap') as any).insert(p)
     setModal(null); loadData()
   }
 
   async function delRow(table: string, id: string) {
     if (!confirm('Hapus?')) return
-    await supabase.from(table as any).delete().eq('id', id); loadData()
+    await (supabase.from(table as any) as any).delete().eq('id', id); loadData()
   }
 
   // Burn rate calculations

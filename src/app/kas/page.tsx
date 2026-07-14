@@ -24,26 +24,60 @@ export default function KasPage() {
   const [kas, setKas] = useState<Kas[]>([])
   const [modal, setModal] = useState(false)
   const [form, setForm] = useState<Record<string, any>>({ jenis: 'masuk', tgl: todayStr() })
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => { loadData() }, [])
   async function loadData() {
-    const { data } = await supabase.from('kas').select('*').order('tgl', { ascending: false })
+    const { data } = await (supabase.from('kas') as any).select('*').order('tgl', { ascending: false })
     setKas(data || [])
   }
   async function saveKas() {
-    await supabase.from('kas').insert({
-      divisi: form.divisi || 'headhunter',
-      tgl: form.tgl || todayStr(),
-      ket: form.ket || '',
-      jenis: form.jenis as 'masuk' | 'keluar',
-      nominal: Number(form.nominal) || 0,
-      file_url: '',
-    })
-    setModal(false); loadData()
+    setSaving(true)
+    let fileUrl = ''
+    try {
+      if (selectedFile) {
+        const fileExt = selectedFile.name.split('.').pop()
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`
+        const filePath = `kas/${fileName}`
+        
+        const { data: uploadData, error: uploadErr } = await supabase.storage
+          .from('documents')
+          .upload(filePath, selectedFile, { cacheControl: '3600', upsert: false })
+          
+        if (uploadErr) {
+          console.error('Error uploading file:', uploadErr)
+          alert('Gagal mengunggah bukti: ' + uploadErr.message)
+        } else {
+          const { data: publicUrlData } = supabase.storage
+            .from('documents')
+            .getPublicUrl(filePath)
+          fileUrl = publicUrlData?.publicUrl || ''
+        }
+      }
+
+      await (supabase.from('kas') as any).insert({
+        divisi: form.divisi || 'headhunter',
+        tgl: form.tgl || todayStr(),
+        ket: form.ket || '',
+        jenis: form.jenis as 'masuk' | 'keluar',
+        nominal: Number(form.nominal) || 0,
+        file_url: fileUrl,
+      })
+
+      setSelectedFile(null)
+      setModal(false)
+      loadData()
+    } catch (err: any) {
+      console.error(err)
+      alert('Gagal menyimpan transaksi: ' + err.message)
+    } finally {
+      setSaving(false)
+    }
   }
   async function delKas(id: string) {
     if (!confirm('Hapus?')) return
-    await supabase.from('kas').delete().eq('id', id); loadData()
+    await (supabase.from('kas') as any).delete().eq('id', id); loadData()
   }
 
   const divData = (divisi: string) => kas.filter(k => k.divisi === divisi)
@@ -79,13 +113,14 @@ export default function KasPage() {
             </DataTable>
           </Card>
           <Card icon="📋" title="Semua Transaksi (Konsolidasi)">
-            <DataTable columns={[{ key: 'tgl', label: 'Tanggal' }, { key: 'tab', label: 'Tab' }, { key: 'ket', label: 'Keterangan' }, { key: 'jenis', label: 'Jenis' }, { key: 'nom', label: 'Nominal' }]}>
+            <DataTable columns={[{ key: 'tgl', label: 'Tanggal' }, { key: 'tab', label: 'Tab' }, { key: 'ket', label: 'Keterangan' }, { key: 'jenis', label: 'Jenis' }, { key: 'nom', label: 'Nominal' }, { key: 'file', label: 'Bukti' }]}>
               {kas.map(k => (
                 <tr key={k.id}>
                   <Td>{new Date(k.tgl).toLocaleDateString('id-ID')}</Td>
                   <Td>{k.divisi}</Td><Td>{k.ket}</Td>
                   <Td><span className={`tag ${k.jenis === 'masuk' ? 'tag-success' : 'tag-danger'}`}>{k.jenis === 'masuk' ? 'Masuk' : 'Keluar'}</span></Td>
                   <Td style={{ fontWeight: 700, color: k.jenis === 'masuk' ? 'var(--success)' : 'var(--danger)' }}>{formatRp(k.nominal)}</Td>
+                  <Td>{k.file_url ? <a href={k.file_url} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm" style={{ padding: '2px 6px', fontSize: '0.72rem', color: 'var(--accent2)' }}>📄 Lihat</a> : '-'}</Td>
                 </tr>
               ))}
             </DataTable>
@@ -106,13 +141,14 @@ export default function KasPage() {
                   <StatCard label="Pengeluaran" value={formatRp(tot.k)} accentColor="var(--danger)" />
                   <StatCard label="Saldo" value={formatRp(tot.m - tot.k)} accentColor="var(--accent2)" />
                 </div>
-                <DataTable columns={[{ key: 'tgl', label: 'Tanggal' }, { key: 'ket', label: 'Keterangan' }, { key: 'j', label: 'Jenis' }, { key: 'nom', label: 'Nominal' }, { key: 'ak', label: 'Aksi' }]}>
+                <DataTable columns={[{ key: 'tgl', label: 'Tanggal' }, { key: 'ket', label: 'Keterangan' }, { key: 'j', label: 'Jenis' }, { key: 'nom', label: 'Nominal' }, { key: 'file', label: 'Bukti' }, { key: 'ak', label: 'Aksi' }]}>
                   {data.map(k => (
                     <tr key={k.id}>
                       <Td>{new Date(k.tgl).toLocaleDateString('id-ID')}</Td>
                       <Td>{k.ket}</Td>
                       <Td><span className={`tag ${k.jenis === 'masuk' ? 'tag-success' : 'tag-danger'}`}>{k.jenis === 'masuk' ? 'Masuk' : 'Keluar'}</span></Td>
                       <Td style={{ fontWeight: 700, color: k.jenis === 'masuk' ? 'var(--success)' : 'var(--danger)' }}>{formatRp(k.nominal)}</Td>
+                      <Td>{k.file_url ? <a href={k.file_url} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm" style={{ padding: '2px 6px', fontSize: '0.72rem', color: 'var(--accent2)' }}>📄 Lihat</a> : '-'}</Td>
                       <ActionButtons onDelete={() => delKas(k.id)} />
                     </tr>
                   ))}
@@ -140,7 +176,21 @@ export default function KasPage() {
           </FormGroup>
           <FormGroup label="Nominal (Rp)"><FormInput type="number" value={form.nominal || ''} onChange={e => setForm(f => ({ ...f, nominal: e.target.value }))} /></FormGroup>
         </div>
-        <ModalActions><BtnOutline onClick={() => setModal(false)}>Batal</BtnOutline><BtnPrimary onClick={saveKas}>Simpan</BtnPrimary></ModalActions>
+        <FormGroup label="Bukti Transaksi (File)">
+          <FormInput type="file" onChange={e => {
+            if (e.target.files && e.target.files.length > 0) {
+              setSelectedFile(e.target.files[0])
+            } else {
+              setSelectedFile(null)
+            }
+          }} />
+        </FormGroup>
+        <ModalActions>
+          <BtnOutline onClick={() => { setModal(false); setSelectedFile(null) }} disabled={saving}>Batal</BtnOutline>
+          <BtnPrimary onClick={saveKas} disabled={saving}>
+            {saving ? 'Menyimpan...' : 'Simpan'}
+          </BtnPrimary>
+        </ModalActions>
       </Modal>
     </div>
   )

@@ -42,6 +42,12 @@ export interface Rekrutmen {
   selesai: string | null
   pct: number
   tahap: string
+  catatan?: string | null
+  file_ol?: string | null
+  karyawan?: string | null
+  media?: string | null
+  deadline?: string | null
+  lokasi?: string | null
   created_at: string
   updated_at: string
 }

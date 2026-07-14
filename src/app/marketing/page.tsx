@@ -24,9 +24,9 @@ export default function MarketingPage() {
 
   async function loadData() {
     const [{ data: l }, { data: c }, { data: cnt }] = await Promise.all([
-      supabase.from('leads').select('*').order('created_at', { ascending: false }),
-      supabase.from('channel_cost').select('*').order('channel'),
-      supabase.from('content_tracking').select('*').order('created_at', { ascending: false }),
+      (supabase.from('leads') as any).select('*').order('created_at', { ascending: false }),
+      (supabase.from('channel_cost') as any).select('*').order('channel'),
+      (supabase.from('content_tracking') as any).select('*').order('created_at', { ascending: false }),
     ])
     setLeads(l || [])
     setChannels(c || [])
@@ -41,15 +41,15 @@ export default function MarketingPage() {
       last_interaction: form.last_interaction || todayStr(),
       notes: form.notes || '',
     }
-    if (editId) await supabase.from('leads').update(p).eq('id', editId)
-    else await supabase.from('leads').insert(p)
+    if (editId) await (supabase.from('leads') as any).update(p).eq('id', editId)
+    else await (supabase.from('leads') as any).insert(p)
     setModal(null); loadData()
   }
 
   async function saveChannel() {
-    const p = { channel: form.channel || '', biaya: Number(form.biaya) || 0, leads_count: Number(form.leads_count) || 0 }
-    if (editId) await supabase.from('channel_cost').update(p).eq('id', editId)
-    else await supabase.from('channel_cost').insert(p)
+    const p = { channel: form.channel || LEAD_CH[0], biaya: Number(form.biaya) || 0, leads_count: Number(form.leads_count) || 0 }
+    if (editId) await (supabase.from('channel_cost') as any).update(p).eq('id', editId)
+    else await (supabase.from('channel_cost') as any).insert(p)
     setModal(null); loadData()
   }
 
@@ -63,14 +63,14 @@ export default function MarketingPage() {
       leads_gen: Number(form.leads_gen) || 0,
       status: form.status || CNT_STATUS[0],
     }
-    if (editId) await supabase.from('content_tracking').update(p).eq('id', editId)
-    else await supabase.from('content_tracking').insert(p)
+    if (editId) await (supabase.from('content_tracking') as any).update(p).eq('id', editId)
+    else await (supabase.from('content_tracking') as any).insert(p)
     setModal(null); loadData()
   }
 
   async function delRow(table: string, id: string) {
     if (!confirm('Hapus?')) return
-    await supabase.from(table as any).delete().eq('id', id); loadData()
+    await (supabase.from(table as any) as any).delete().eq('id', id); loadData()
   }
 
   // Funnel counts
@@ -141,7 +141,7 @@ export default function MarketingPage() {
           </Card>
 
           <Card icon="📡" title="Cost per Channel & CPL" actions={
-            <button className="btn btn-outline btn-sm" onClick={() => { setForm({}); setEditId(null); setModal('channel') }}>+ Tambah Channel</button>
+            <button className="btn btn-outline btn-sm" onClick={() => { setForm({ channel: LEAD_CH[0] }); setEditId(null); setModal('channel') }}>+ Tambah Channel</button>
           }>
             <DataTable columns={[{ key: 'ch', label: 'Channel' }, { key: 'biaya', label: 'Biaya (Rp)' }, { key: 'leads', label: 'Leads' }, { key: 'cpl', label: 'CPL' }, { key: 'ak', label: 'Aksi' }]}>
               {channels.map(c => {

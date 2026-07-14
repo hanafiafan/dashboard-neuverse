@@ -20,40 +20,40 @@ export default function LMSPage() {
   useEffect(() => { loadData() }, [])
   async function loadData() {
     const [{ data: f }, { data: k }, { data: t }] = await Promise.all([
-      supabase.from('lms_fase').select('*').order('created_at'),
-      supabase.from('lms_kendala').select('*').order('created_at'),
-      supabase.from('trainer').select('*').order('created_at'),
+      (supabase.from('lms_fase') as any).select('*').order('created_at'),
+      (supabase.from('lms_kendala') as any).select('*').order('created_at'),
+      (supabase.from('trainer') as any).select('*').order('created_at'),
     ])
     setFase(f || []); setKendala(k || []); setTrainers(t || [])
   }
 
   async function saveFase() {
     const p = { fase: form.fase || '', deskripsi: form.deskripsi || '', target: form.target || '', progress: Number(form.progress) || 0, status: form.status || LMS_FASE_STATUS[0] }
-    if (editId) await supabase.from('lms_fase').update(p).eq('id', editId)
-    else await supabase.from('lms_fase').insert(p)
+    if (editId) await (supabase.from('lms_fase') as any).update(p).eq('id', editId)
+    else await (supabase.from('lms_fase') as any).insert(p)
     setModal(null); loadData()
   }
   async function saveKendala() {
     const p = { kendala: form.kendala || '', prioritas: form.prioritas || LMS_PRIORITAS[1], pic: form.pic || '', deadline: form.deadline || null, status: form.status || 'Antre' }
-    if (editId) await supabase.from('lms_kendala').update(p).eq('id', editId)
-    else await supabase.from('lms_kendala').insert(p)
+    if (editId) await (supabase.from('lms_kendala') as any).update(p).eq('id', editId)
+    else await (supabase.from('lms_kendala') as any).insert(p)
     setModal(null); loadData()
   }
   async function saveTrainer() {
     const p = { nama: form.nama || '', bidang: form.bidang || '', email: form.email || '', hp: form.hp || '', sertifikasi: form.sertifikasi || '', materi: form.materi || '', status: form.status || 'Aktif' }
-    if (editId) await supabase.from('trainer').update(p).eq('id', editId)
-    else await supabase.from('trainer').insert(p)
+    if (editId) await (supabase.from('trainer') as any).update(p).eq('id', editId)
+    else await (supabase.from('trainer') as any).insert(p)
     setModal(null); loadData()
   }
   async function delRow(table: string, id: string) {
     if (!confirm('Hapus?')) return
-    await supabase.from(table as any).delete().eq('id', id); loadData()
+    await (supabase.from(table as any) as any).delete().eq('id', id); loadData()
   }
 
   return (
     <div>
       <Card icon="📊" title="Progress LMS per Fase" actions={
-        <button className="btn btn-primary btn-sm" onClick={() => { setForm({}); setEditId(null); setModal('fase') }}>+ Tambah Fase</button>
+        <button className="btn btn-primary btn-sm" onClick={() => { setForm({ progress: 0, status: LMS_FASE_STATUS[0] }); setEditId(null); setModal('fase') }}>+ Tambah Fase</button>
       }>
         <DataTable columns={[
           { key: 'fase', label: 'Fase' }, { key: 'desk', label: 'Deskripsi' }, { key: 'target', label: 'Target' },
@@ -78,7 +78,7 @@ export default function LMSPage() {
       </Card>
 
       <Card icon="⚠️" title="Kendala & Prioritas" actions={
-        <button className="btn btn-primary btn-sm" onClick={() => { setForm({}); setEditId(null); setModal('kendala') }}>+ Tambah Kendala</button>
+        <button className="btn btn-primary btn-sm" onClick={() => { setForm({ prioritas: LMS_PRIORITAS[0], status: 'Antre' }); setEditId(null); setModal('kendala') }}>+ Tambah Kendala</button>
       }>
         <DataTable columns={[
           { key: 'k', label: 'Kendala' }, { key: 'p', label: 'Prioritas' }, { key: 'pic', label: 'PIC' },
@@ -95,7 +95,7 @@ export default function LMSPage() {
       </Card>
 
       <Card icon="👨‍🏫" title="List Trainer & Kelengkapan" actions={
-        <button className="btn btn-primary btn-sm" onClick={() => { setForm({}); setEditId(null); setModal('trainer') }}>+ Tambah Trainer</button>
+        <button className="btn btn-primary btn-sm" onClick={() => { setForm({ status: TRAINER_STATUS[0] }); setEditId(null); setModal('trainer') }}>+ Tambah Trainer</button>
       }>
         <DataTable columns={[
           { key: 'nama', label: 'Nama' }, { key: 'bidang', label: 'Bidang/Keahlian' }, { key: 'email', label: 'Email' },

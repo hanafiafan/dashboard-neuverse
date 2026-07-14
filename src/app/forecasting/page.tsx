@@ -25,8 +25,8 @@ export default function ForecastingPage() {
 
   async function loadData() {
     const [{ data: fc }, { data: cs }] = await Promise.all([
-      supabase.from('forecast').select('*').eq('tahun', year).order('divisi'),
-      supabase.from('forecast_cost').select('*').eq('tahun', year).order('kategori'),
+      (supabase.from('forecast') as any).select('*').eq('tahun', year).order('divisi'),
+      (supabase.from('forecast_cost') as any).select('*').eq('tahun', year).order('kategori'),
     ])
     setForecasts(fc || [])
     setCosts(cs || [])
@@ -35,22 +35,22 @@ export default function ForecastingPage() {
   async function saveFc() {
     const p: any = { divisi: form.divisi || '', tahun: year }
     MONTHS.forEach(m => { p[m] = Number(form[m]) || 0 })
-    if (editId) await supabase.from('forecast').update(p).eq('id', editId)
-    else await supabase.from('forecast').insert(p)
+    if (editId) await (supabase.from('forecast') as any).update(p).eq('id', editId)
+    else await (supabase.from('forecast') as any).insert(p)
     setModal(null); loadData()
   }
 
   async function saveCost() {
     const p: any = { kategori: form.kategori || '', tipe: form.tipe || 'Fixed', tahun: year }
     MONTHS.forEach(m => { p[m] = Number(form[m]) || 0 })
-    if (editId) await supabase.from('forecast_cost').update(p).eq('id', editId)
-    else await supabase.from('forecast_cost').insert(p)
+    if (editId) await (supabase.from('forecast_cost') as any).update(p).eq('id', editId)
+    else await (supabase.from('forecast_cost') as any).insert(p)
     setModal(null); loadData()
   }
 
   async function delRow(table: string, id: string) {
     if (!confirm('Hapus?')) return
-    await supabase.from(table as any).delete().eq('id', id); loadData()
+    await (supabase.from(table as any) as any).delete().eq('id', id); loadData()
   }
 
   const totalPerMonth = (rows: (Forecast | ForecastCost)[]) => {

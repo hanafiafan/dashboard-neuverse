@@ -23,9 +23,9 @@ export default function CoursesPage() {
 
   async function loadData() {
     const [{ data: off }, { data: on }, { data: k }] = await Promise.all([
-      supabase.from('batch_offline').select('*').order('created_at'),
-      supabase.from('batch_online').select('*').order('created_at'),
-      supabase.from('kelas').select('*').order('created_at'),
+      (supabase.from('batch_offline') as any).select('*').order('created_at'),
+      (supabase.from('batch_online') as any).select('*').order('created_at'),
+      (supabase.from('kelas') as any).select('*').order('created_at'),
     ])
     setOffline(off || [])
     setOnline(on || [])
@@ -35,21 +35,21 @@ export default function CoursesPage() {
   async function saveBatch(kind: 'offline' | 'online') {
     const table = kind === 'offline' ? 'batch_offline' : 'batch_online'
     const payload = { nama: form.nama || '', tanggal: form.tanggal || null, tempat: form.tempat || '', trainer: form.trainer || '', peserta: Number(form.peserta) || 0, status: form.status || 'Pipeline' }
-    if (editId) await supabase.from(table).update(payload).eq('id', editId)
-    else await supabase.from(table).insert(payload)
+    if (editId) await (supabase.from(table) as any).update(payload).eq('id', editId)
+    else await (supabase.from(table) as any).insert(payload)
     setModal(null); loadData()
   }
 
   async function saveKelas() {
     const payload = { nama: form.nama || '', kategori: form.kategori || '', modul: Number(form.modul) || 0, peserta: Number(form.peserta) || 0, progress: Number(form.progress) || 0, status: form.status || 'Baru' }
-    if (editId) await supabase.from('kelas').update(payload).eq('id', editId)
-    else await supabase.from('kelas').insert(payload)
+    if (editId) await (supabase.from('kelas') as any).update(payload).eq('id', editId)
+    else await (supabase.from('kelas') as any).insert(payload)
     setModal(null); loadData()
   }
 
   async function delRow(table: string, id: string) {
     if (!confirm('Hapus?')) return
-    await supabase.from(table as any).delete().eq('id', id)
+    await (supabase.from(table as any) as any).delete().eq('id', id)
     loadData()
   }
 
@@ -88,7 +88,7 @@ export default function CoursesPage() {
 
       {tab === 'offline' && (
         <Card icon="🏫" title="Offline Batch" actions={
-          <button className="btn btn-primary btn-sm" onClick={() => { setForm({}); setEditId(null); setModal('offline') }}>+ Tambah Batch</button>
+          <button className="btn btn-primary btn-sm" onClick={() => { setForm({ status: 'Pipeline' }); setEditId(null); setModal('offline') }}>+ Tambah Batch</button>
         }>
           <DataTable columns={batchCols}><BatchRows data={offline} table="batch_offline" /></DataTable>
         </Card>
@@ -96,7 +96,7 @@ export default function CoursesPage() {
 
       {tab === 'online' && (
         <Card icon="💻" title="Online Batch" actions={
-          <button className="btn btn-primary btn-sm" onClick={() => { setForm({}); setEditId(null); setModal('online') }}>+ Tambah Batch</button>
+          <button className="btn btn-primary btn-sm" onClick={() => { setForm({ status: 'Pipeline' }); setEditId(null); setModal('online') }}>+ Tambah Batch</button>
         }>
           <DataTable columns={batchCols}><BatchRows data={online} table="batch_online" /></DataTable>
         </Card>
@@ -104,7 +104,7 @@ export default function CoursesPage() {
 
       {tab === 'kelas' && (
         <Card icon="📖" title="Kelas Aktif & Modul" actions={
-          <button className="btn btn-primary btn-sm" onClick={() => { setForm({}); setEditId(null); setModal('kelas') }}>+ Tambah Kelas</button>
+          <button className="btn btn-primary btn-sm" onClick={() => { setForm({ status: 'Baru', progress: 0 }); setEditId(null); setModal('kelas') }}>+ Tambah Kelas</button>
         }>
           <DataTable columns={[
             { key: 'nama', label: 'Nama Kelas' }, { key: 'kat', label: 'Kategori' },

@@ -23,8 +23,8 @@ export default function ClientSuccessPage() {
 
   async function loadData() {
     const [{ data: n }, { data: f }] = await Promise.all([
-      supabase.from('nps').select('*').order('tanggal', { ascending: false }),
-      supabase.from('feedback').select('*').order('created_at', { ascending: false }),
+      (supabase.from('nps') as any).select('*').order('tanggal', { ascending: false }),
+      (supabase.from('feedback') as any).select('*').order('created_at', { ascending: false }),
     ])
     setNpsData(n || [])
     setFeedback(f || [])
@@ -37,8 +37,8 @@ export default function ClientSuccessPage() {
       tanggal: form.tanggal || todayStr(),
       komentar: form.komentar || '',
     }
-    if (editId) await supabase.from('nps').update(p).eq('id', editId)
-    else await supabase.from('nps').insert(p)
+    if (editId) await (supabase.from('nps') as any).update(p).eq('id', editId)
+    else await (supabase.from('nps') as any).insert(p)
     setModal(null); loadData()
   }
 
@@ -50,14 +50,14 @@ export default function ClientSuccessPage() {
       sentimen: form.sentimen || SENTIMEN[1],
       status: form.status || FB_STATUS[0],
     }
-    if (editId) await supabase.from('feedback').update(p).eq('id', editId)
-    else await supabase.from('feedback').insert(p)
+    if (editId) await (supabase.from('feedback') as any).update(p).eq('id', editId)
+    else await (supabase.from('feedback') as any).insert(p)
     setModal(null); loadData()
   }
 
   async function delRow(table: string, id: string) {
     if (!confirm('Hapus?')) return
-    await supabase.from(table as any).delete().eq('id', id); loadData()
+    await (supabase.from(table as any) as any).delete().eq('id', id); loadData()
   }
 
   // NPS calculations

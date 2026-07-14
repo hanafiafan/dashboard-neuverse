@@ -41,11 +41,17 @@ export default function HeadhunterPage() {
       selesai: form.selesai || null,
       pct: Number(form.pct) || 0,
       tahap: form.tahap || TAHAP_HH[0],
+      catatan: form.catatan || '',
+      file_ol: form.file_ol || '',
+      karyawan: form.karyawan || '',
+      media: form.media || '',
+      deadline: form.deadline || null,
+      lokasi: form.lokasi || '',
     }
     if (editIdx !== null) {
-      await supabase.from('rekrutmen').update(payload).eq('id', rekrutmen[editIdx].id)
+      await (supabase.from('rekrutmen') as any).update(payload).eq('id', rekrutmen[editIdx].id)
     } else {
-      await supabase.from('rekrutmen').insert(payload)
+      await (supabase.from('rekrutmen') as any).insert(payload)
     }
     setModal(null); loadData()
   }
@@ -59,22 +65,22 @@ export default function HeadhunterPage() {
       catatan: form.catatan || '',
     }
     if (editIdx !== null) {
-      await supabase.from('kritis').update(payload).eq('id', kritis[editIdx].id)
+      await (supabase.from('kritis') as any).update(payload).eq('id', kritis[editIdx].id)
     } else {
-      await supabase.from('kritis').insert(payload)
+      await (supabase.from('kritis') as any).insert(payload)
     }
     setModal(null); loadData()
   }
 
   async function delRekrutmen(id: string) {
     if (!confirm('Hapus?')) return
-    await supabase.from('rekrutmen').delete().eq('id', id)
+    await (supabase.from('rekrutmen') as any).delete().eq('id', id)
     loadData()
   }
 
   async function delKritis(id: string) {
     if (!confirm('Hapus?')) return
-    await supabase.from('kritis').delete().eq('id', id)
+    await (supabase.from('kritis') as any).delete().eq('id', id)
     loadData()
   }
 
@@ -204,7 +210,8 @@ export default function HeadhunterPage() {
         }>
           <DataTable columns={[
             { key: 'pos', label: 'Posisi' }, { key: 'ent', label: 'Entitas' }, { key: 'kat', label: 'Kategori' },
-            { key: 'mul', label: 'Tgl Mulai' }, { key: 'sel', label: 'Tgl Selesai' },
+            { key: 'kar', label: 'Karyawan Hired' }, { key: 'mul', label: 'Tgl Mulai' }, { key: 'sel', label: 'Tgl Selesai' },
+            { key: 'dl', label: 'Deadline' }, { key: 'lok', label: 'Lokasi' }, { key: 'med', label: 'Media/Portal' },
             { key: 'pct', label: '% Terpenuhi' }, { key: 'tah', label: 'Tahap' }, { key: 'ak', label: 'Aksi' },
           ]}>
             {rekrutmen.map((r, i) => (
@@ -212,9 +219,31 @@ export default function HeadhunterPage() {
                 <Td>{r.posisi}</Td>
                 <Td>{r.entitas}</Td>
                 <Td><Tag value={r.kategori} /></Td>
+                <Td>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <span>{r.karyawan || '-'}</span>
+                    {r.file_ol ? (
+                      <a href={r.file_ol} target="_blank" rel="noreferrer" style={{ color: 'var(--accent2)', fontSize: '0.72rem', textDecoration: 'underline' }}>
+                        📄 File OL
+                      </a>
+                    ) : null}
+                  </div>
+                </Td>
                 <Td>{r.mulai || '-'}</Td>
                 <Td>{r.selesai || '-'}</Td>
-                <Td><strong>{r.pct}%</strong></Td>
+                <Td>{r.deadline || '-'}</Td>
+                <Td>{r.lokasi || '-'}</Td>
+                <Td>{r.media || '-'}</Td>
+                <Td>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <strong>{r.pct}%</strong>
+                    {r.catatan ? (
+                      <span style={{ fontSize: '0.72rem', color: 'var(--muted)', maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={r.catatan}>
+                        📝 {r.catatan}
+                      </span>
+                    ) : null}
+                  </div>
+                </Td>
                 <Td><Tag value={r.tahap} /></Td>
                 <ActionButtons onEdit={() => { setForm(r as any); setEditIdx(i); setModal('rekrutmen') }} onDelete={() => delRekrutmen(r.id)} />
               </tr>
@@ -243,6 +272,16 @@ export default function HeadhunterPage() {
           <FormGroup label="Tgl Mulai"><FormInput type="date" value={form.mulai || ''} onChange={e => setForm(f => ({ ...f, mulai: e.target.value }))} /></FormGroup>
           <FormGroup label="Tgl Selesai"><FormInput type="date" value={form.selesai || ''} onChange={e => setForm(f => ({ ...f, selesai: e.target.value }))} /></FormGroup>
         </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <FormGroup label="Karyawan Hired"><FormInput value={form.karyawan || ''} onChange={e => setForm(f => ({ ...f, karyawan: e.target.value }))} /></FormGroup>
+          <FormGroup label="Media / Job Portal"><FormInput value={form.media || ''} onChange={e => setForm(f => ({ ...f, media: e.target.value }))} /></FormGroup>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <FormGroup label="Lokasi Penempatan"><FormInput value={form.lokasi || ''} onChange={e => setForm(f => ({ ...f, lokasi: e.target.value }))} /></FormGroup>
+          <FormGroup label="Deadline Posisi"><FormInput type="date" value={form.deadline || ''} onChange={e => setForm(f => ({ ...f, deadline: e.target.value }))} /></FormGroup>
+        </div>
+        <FormGroup label="File OL (Link / URL)"><FormInput value={form.file_ol || ''} onChange={e => setForm(f => ({ ...f, file_ol: e.target.value }))} placeholder="https://..." /></FormGroup>
+        <FormGroup label="Catatan"><FormInput value={form.catatan || ''} onChange={e => setForm(f => ({ ...f, catatan: e.target.value }))} /></FormGroup>
         <FormGroup label="% Terpenuhi"><FormInput type="number" value={form.pct || 0} onChange={e => setForm(f => ({ ...f, pct: Number(e.target.value) }))} /></FormGroup>
         <ModalActions>
           <BtnOutline onClick={() => setModal(null)}>Batal</BtnOutline>

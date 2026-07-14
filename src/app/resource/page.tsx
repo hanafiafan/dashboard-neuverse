@@ -23,8 +23,8 @@ export default function ResourcePage() {
 
   async function loadData() {
     const [{ data: c }, { data: l }] = await Promise.all([
-      supabase.from('cap_trainer').select('*').order('nama'),
-      supabase.from('staff_load').select('*').order('nama'),
+      (supabase.from('cap_trainer') as any).select('*').order('nama'),
+      (supabase.from('staff_load') as any).select('*').order('nama'),
     ])
     setCaps(c || [])
     setLoads(l || [])
@@ -38,8 +38,8 @@ export default function ResourcePage() {
       status: form.status || CAP_STATUS[0],
       kpi: form.kpi || '',
     }
-    if (editId) await supabase.from('cap_trainer').update(p).eq('id', editId)
-    else await supabase.from('cap_trainer').insert(p)
+    if (editId) await (supabase.from('cap_trainer') as any).update(p).eq('id', editId)
+    else await (supabase.from('cap_trainer') as any).insert(p)
     setModal(null); loadData()
   }
 
@@ -52,14 +52,14 @@ export default function ResourcePage() {
       status: form.status || LOAD_STATUS[0],
       kpi: form.kpi || '',
     }
-    if (editId) await supabase.from('staff_load').update(p).eq('id', editId)
-    else await supabase.from('staff_load').insert(p)
+    if (editId) await (supabase.from('staff_load') as any).update(p).eq('id', editId)
+    else await (supabase.from('staff_load') as any).insert(p)
     setModal(null); loadData()
   }
 
   async function delRow(table: string, id: string) {
     if (!confirm('Hapus?')) return
-    await supabase.from(table as any).delete().eq('id', id); loadData()
+    await (supabase.from(table as any) as any).delete().eq('id', id); loadData()
   }
 
   const overloadedTrainers = caps.filter(c => c.current_batch >= c.max_batch && c.max_batch > 0).length
@@ -94,7 +94,7 @@ export default function ResourcePage() {
       {/* ───────── TRAINER TAB ───────── */}
       {tab === 'trainer' && (
         <Card icon="🏋️" title="Kapasitas Trainer" actions={
-          <button className="btn btn-primary btn-sm" onClick={() => { setForm({}); setEditId(null); setModal('cap') }}>+ Tambah Trainer</button>
+          <button className="btn btn-primary btn-sm" onClick={() => { setForm({ status: CAP_STATUS[0] }); setEditId(null); setModal('cap') }}>+ Tambah Trainer</button>
         }>
           <DataTable columns={[
             { key: 'nama', label: 'Nama Trainer' },
@@ -136,7 +136,7 @@ export default function ResourcePage() {
       {/* ───────── STAFF TAB ───────── */}
       {tab === 'staff' && (
         <Card icon="👔" title="Staff Workload Extended Matrix" actions={
-          <button className="btn btn-primary btn-sm" onClick={() => { setForm({}); setEditId(null); setModal('load') }}>+ Tambah Staff</button>
+          <button className="btn btn-primary btn-sm" onClick={() => { setForm({ status: LOAD_STATUS[0] }); setEditId(null); setModal('load') }}>+ Tambah Staff</button>
         }>
           <DataTable columns={[
             { key: 'nama', label: 'Nama Staff' },

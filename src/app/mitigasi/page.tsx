@@ -19,7 +19,7 @@ export default function MitigasiPage() {
   useEffect(() => { loadData() }, [])
 
   async function loadData() {
-    const { data } = await supabase.from('mitigasi').select('*').order('created_at', { ascending: false })
+    const { data } = await (supabase.from('mitigasi') as any).select('*').order('created_at', { ascending: false })
     setRows(data || [])
   }
 
@@ -34,14 +34,14 @@ export default function MitigasiPage() {
       tindakan: form.tindakan || '',
       status: form.status || MITIGASI_STATUS[0],
     }
-    if (editId) await supabase.from('mitigasi').update(p).eq('id', editId)
-    else await supabase.from('mitigasi').insert(p)
+    if (editId) await (supabase.from('mitigasi') as any).update(p).eq('id', editId)
+    else await (supabase.from('mitigasi') as any).insert(p)
     setModal(false); loadData()
   }
 
   async function del(id: string) {
     if (!confirm('Hapus?')) return
-    await supabase.from('mitigasi').delete().eq('id', id); loadData()
+    await (supabase.from('mitigasi') as any).delete().eq('id', id); loadData()
   }
 
   const terbuka = rows.filter(r => r.status !== 'Selesai').length
@@ -70,7 +70,7 @@ export default function MitigasiPage() {
       )}
 
       <Card icon="🛡️" title="Register Risiko & Mitigasi" actions={
-        <button className="btn btn-primary btn-sm" onClick={() => { setForm({}); setEditId(null); setModal(true) }}>+ Tambah Risiko</button>
+        <button className="btn btn-primary btn-sm" onClick={() => { setForm({ probabilitas: 'Rendah', prioritas: 'Sedang', status: MITIGASI_STATUS[0] }); setEditId(null); setModal(true) }}>+ Tambah Risiko</button>
       }>
         <DataTable columns={[
           { key: 'risiko', label: 'Risiko' },

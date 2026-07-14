@@ -18,6 +18,13 @@ create table if not exists rekrutmen (
   selesai date,
   pct numeric(5,2) default 0,
   tahap text not null default 'Screening',
+  -- New fields:
+  catatan text default '',
+  file_ol text default '',
+  karyawan text default '',
+  media text default '',
+  deadline date,
+  lokasi text default '',
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -206,20 +213,8 @@ create table if not exists cashflow (
 -- ============================================================
 create table if not exists forecast (
   id uuid primary key default uuid_generate_v4(),
-  bulan text not null default 'Januari',
   divisi text not null default 'Headhunter',
-  target numeric(15,2) default 0,
-  fc numeric(15,2) default 0,
-  real numeric(15,2) default 0,
-  catatan text default '',
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
-
-create table if not exists forecast_cost (
-  id uuid primary key default uuid_generate_v4(),
-  vendor text not null default '',
-  divisi text not null default 'Lainnya',
+  tahun integer not null default 2026,
   jan numeric(15,2) default 0,
   feb numeric(15,2) default 0,
   mar numeric(15,2) default 0,
@@ -232,7 +227,27 @@ create table if not exists forecast_cost (
   okt numeric(15,2) default 0,
   nov numeric(15,2) default 0,
   des numeric(15,2) default 0,
-  catatan text default '',
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create table if not exists forecast_cost (
+  id uuid primary key default uuid_generate_v4(),
+  kategori text not null default '',
+  tipe text not null default 'Fixed',
+  tahun integer not null default 2026,
+  jan numeric(15,2) default 0,
+  feb numeric(15,2) default 0,
+  mar numeric(15,2) default 0,
+  apr numeric(15,2) default 0,
+  mei numeric(15,2) default 0,
+  jun numeric(15,2) default 0,
+  jul numeric(15,2) default 0,
+  agu numeric(15,2) default 0,
+  sep numeric(15,2) default 0,
+  okt numeric(15,2) default 0,
+  nov numeric(15,2) default 0,
+  des numeric(15,2) default 0,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -242,12 +257,13 @@ create table if not exists forecast_cost (
 -- ============================================================
 create table if not exists mitigasi (
   id uuid primary key default uuid_generate_v4(),
-  tab text default '',
-  kendala text not null default '',
-  mitigasi text default '',
-  solving text default '',
+  risiko text not null default '',
+  dampak text default '',
+  probabilitas text not null default 'Rendah',
+  prioritas text not null default 'Sedang',
   pic text default '',
   deadline date,
+  tindakan text default '',
   status text not null default 'Terbuka',
   created_at timestamptz default now(),
   updated_at timestamptz default now()
@@ -259,12 +275,10 @@ create table if not exists mitigasi (
 create table if not exists leads (
   id uuid primary key default uuid_generate_v4(),
   nama text not null default '',
-  kontak text default '',
   channel text not null default 'LinkedIn',
   stage text not null default 'Lead',
   last_interaction date,
-  est_nilai numeric(15,2) default 0,
-  pic text default '',
+  notes text default '',
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -273,6 +287,7 @@ create table if not exists channel_cost (
   id uuid primary key default uuid_generate_v4(),
   channel text unique not null,
   biaya numeric(15,2) default 0,
+  leads_count integer default 0,
   updated_at timestamptz default now()
 );
 
@@ -287,14 +302,13 @@ on conflict (channel) do nothing;
 
 create table if not exists content_tracking (
   id uuid primary key default uuid_generate_v4(),
-  minggu text default '',
-  stage text not null default 'TOFU (Awareness)',
-  platform text not null default 'LinkedIn',
   judul text not null default '',
-  status text not null default 'Ideasi',
-  link text default '',
+  platform text not null default 'LinkedIn',
+  stage text not null default 'TOFU (Awareness)',
   views integer default 0,
   engagement numeric(6,2) default 0,
+  leads_gen integer default 0,
+  status text not null default 'Ideasi',
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -305,9 +319,10 @@ create table if not exists content_tracking (
 create table if not exists cap_trainer (
   id uuid primary key default uuid_generate_v4(),
   nama text not null default '',
-  kapasitas integer default 0,
-  terpakai integer default 0,
+  max_batch integer default 0,
+  current_batch integer default 0,
   status text not null default 'Sehat',
+  kpi text default '',
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -315,13 +330,11 @@ create table if not exists cap_trainer (
 create table if not exists staff_load (
   id uuid primary key default uuid_generate_v4(),
   nama text not null default '',
-  divisi text default '',
-  aktivitas text default '',
-  frekuensi text not null default 'Harian',
-  tugas integer default 0,
-  kapasitas integer default 0,
-  kpi text default '',
+  jabatan text default '',
+  max_jam integer default 0,
+  current_jam integer default 0,
   status text not null default 'Normal',
+  kpi text default '',
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -331,20 +344,20 @@ create table if not exists staff_load (
 -- ============================================================
 create table if not exists nps (
   id uuid primary key default uuid_generate_v4(),
-  periode text not null default '',
+  klien text not null default '',
   skor numeric(4,1) not null default 0 check (skor >= 0 and skor <= 10),
-  catatan text default '',
+  tanggal date,
+  komentar text default '',
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
 
 create table if not exists feedback (
   id uuid primary key default uuid_generate_v4(),
-  tanggal date not null default current_date,
-  client text not null default '',
-  feedback text default '',
+  klien text not null default '',
+  kategori text default '',
+  isi text default '',
   sentimen text not null default 'Netral',
-  tindak text default '',
   status text not null default 'Baru',
   created_at timestamptz default now(),
   updated_at timestamptz default now()
@@ -433,5 +446,11 @@ create index if not exists idx_kas_divisi on kas(divisi);
 create index if not exists idx_cashflow_tanggal on cashflow(tanggal);
 create index if not exists idx_leads_stage on leads(stage);
 create index if not exists idx_forecast_divisi on forecast(divisi);
-create index if not exists idx_forecast_cost_divisi on forecast_cost(divisi);
 create index if not exists idx_mitigasi_status on mitigasi(status);
+
+-- ============================================================
+-- STORAGE BUCKETS (for uploaded receipts / documents)
+-- ============================================================
+insert into storage.buckets (id, name, public)
+values ('documents', 'documents', true)
+on conflict (id) do nothing;

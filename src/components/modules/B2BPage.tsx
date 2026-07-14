@@ -47,35 +47,39 @@ export default function B2BPage({ scope }: Props) {
 
   async function saveClient() {
     const payload = { scope, nama: form.nama || '', layanan: form.layanan || '', nilai: Number(form.nilai) || 0, pic: form.pic || '', status: form.status || 'Aktif' }
-    if (editId) await supabase.from('b2b_clients').update(payload).eq('id', editId)
-    else await supabase.from('b2b_clients').insert(payload)
+    if (editId) await (supabase.from('b2b_clients') as any).update(payload).eq('id', editId)
+    else await (supabase.from('b2b_clients') as any).insert(payload)
     setModal(null); loadData()
   }
 
   async function savePipeline() {
     const payload = { scope, nama: form.nama || '', layanan: form.layanan || '', nilai: Number(form.nilai) || 0, pic: form.pic || '', stage: form.stage || 'Prospek', prob: Number(form.prob) || 0, score: Number(form.score) || 0 }
-    if (editId) await supabase.from('b2b_pipeline').update(payload).eq('id', editId)
-    else await supabase.from('b2b_pipeline').insert(payload)
+    if (editId) await (supabase.from('b2b_pipeline') as any).update(payload).eq('id', editId)
+    else await (supabase.from('b2b_pipeline') as any).insert(payload)
     setModal(null); loadData()
   }
 
   async function saveChecklist() {
+    if (!form.client_id) {
+      alert('Silakan pilih client terlebih dahulu')
+      return
+    }
     const payload = { scope, client_id: form.client_id, task: form.task || '', target_date: form.target_date || null, status: form.status || 'Belum Mulai', link: form.link || '' }
-    if (editId) await supabase.from('b2b_checklist').update(payload).eq('id', editId)
-    else await supabase.from('b2b_checklist').insert(payload)
+    if (editId) await (supabase.from('b2b_checklist') as any).update(payload).eq('id', editId)
+    else await (supabase.from('b2b_checklist') as any).insert(payload)
     setModal(null); loadData()
   }
 
   async function saveProgres() {
     const payload = { client_id: selectedClient, fase: form.fase || '', keterangan: form.keterangan || '', tanggal: form.tanggal || null, status: form.status || 'Belum' }
-    if (editId) await supabase.from('b2b_progres').update(payload).eq('id', editId)
-    else await supabase.from('b2b_progres').insert(payload)
+    if (editId) await (supabase.from('b2b_progres') as any).update(payload).eq('id', editId)
+    else await (supabase.from('b2b_progres') as any).insert(payload)
     setModal(null); loadData()
   }
 
   async function delRow(table: string, id: string) {
     if (!confirm('Hapus?')) return
-    await supabase.from(table as any).delete().eq('id', id)
+    await (supabase.from(table as any) as any).delete().eq('id', id)
     loadData()
   }
 
@@ -101,26 +105,49 @@ export default function B2BPage({ scope }: Props) {
       {tab === 'cp' && (
         <>
           <Card icon="✅" title="Client Aktif" actions={
-            <button className="btn btn-outline btn-sm" onClick={() => { setForm({}); setEditId(null); setModal('client') }}>+ Tambah Client</button>
+            <button className="btn btn-outline btn-sm" onClick={() => { setForm({ status: 'Aktif' }); setEditId(null); setModal('client') }}>+ Tambah Client</button>
           }>
             <DataTable columns={[
               { key: 'nama', label: 'Nama Client' }, { key: 'layanan', label: 'Jenis Layanan' },
               { key: 'nilai', label: 'Nilai' }, { key: 'pic', label: 'PIC' },
+              { key: 'prog', label: 'Progress Checklist' },
               { key: 'status', label: 'Status' }, { key: 'ak', label: 'Aksi' },
             ]}>
-              {clients.map(c => (
-                <tr key={c.id}>
-                  <Td>{c.nama}</Td><Td>{c.layanan}</Td>
-                  <Td>Rp {Number(c.nilai).toLocaleString('id-ID')}</Td>
-                  <Td>{c.pic}</Td><Td><Tag value={c.status} /></Td>
-                  <ActionButtons onEdit={() => { setForm(c as any); setEditId(c.id); setModal('client') }} onDelete={() => delRow('b2b_clients', c.id)} />
-                </tr>
-              ))}
+              {clients.map(c => {
+                const clientTasks = checklist.filter(item => item.client_id === c.id)
+                let pct = 0
+                if (clientTasks.length > 0) {
+                  const totalWeight = clientTasks.reduce((acc, item) => {
+                    if (item.status === 'Selesai Acc') return acc + 100
+                    if (item.status === 'Review Internal') return acc + 75
+                    if (item.status === 'Proses Kerja') return acc + 50
+                    return acc
+                  }, 0)
+                  pct = Math.round(totalWeight / clientTasks.length)
+                }
+                return (
+                  <tr key={c.id}>
+                    <Td>{c.nama}</Td><Td>{c.layanan}</Td>
+                    <Td>Rp {Number(c.nilai).toLocaleString('id-ID')}</Td>
+                    <Td>{c.pic}</Td>
+                    <Td style={{ minWidth: 110 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div className="progress-bar" style={{ width: 50 }}>
+                          <div className={`progress-fill ${pct >= 100 ? 'fill-success' : pct >= 50 ? 'fill-blue' : 'fill-accent'}`} style={{ width: pct + '%' }} />
+                        </div>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{pct}%</span>
+                      </div>
+                    </Td>
+                    <Td><Tag value={c.status} /></Td>
+                    <ActionButtons onEdit={() => { setForm(c as any); setEditId(c.id); setModal('client') }} onDelete={() => delRow('b2b_clients', c.id)} />
+                  </tr>
+                )
+              })}
             </DataTable>
           </Card>
 
           <Card icon="🔄" title="Pipeline Client" actions={
-            <button className="btn btn-outline btn-sm" onClick={() => { setForm({}); setEditId(null); setModal('pipeline') }}>+ Tambah Pipeline</button>
+            <button className="btn btn-outline btn-sm" onClick={() => { setForm({ stage: STAGE_B2B[0], prob: 0, score: 0 }); setEditId(null); setModal('pipeline') }}>+ Tambah Pipeline</button>
           }>
             <DataTable columns={[
               { key: 'nama', label: 'Nama Prospek' }, { key: 'layanan', label: 'Layanan' },
@@ -145,36 +172,56 @@ export default function B2BPage({ scope }: Props) {
 
       {/* Checklist */}
       {tab === 'checklist' && (
-        <Card icon="✅" title="Milestone Checklist & Lampiran — Per Klien" actions={
-          <button className="btn btn-primary btn-sm" onClick={() => { setForm({}); setEditId(null); setModal('checklist') }}>+ Tambah Milestone</button>
-        }>
-          <DataTable columns={[
-            { key: 'a', label: '!', width: 18 }, { key: 'client', label: 'Client' }, { key: 'task', label: 'Tugas / Milestone' },
-            { key: 'date', label: 'Target Date' }, { key: 'status', label: 'Status' }, { key: 'link', label: 'Link' }, { key: 'ak', label: 'Aksi' },
-          ]}>
-            {checklist.map(item => {
-              const a = alertLevel({ deadline: item.target_date, status: item.status !== 'Selesai Acc' ? 'Terbuka' : null })
-              const client = clients.find(c => c.id === item.client_id)
-              return (
-                <tr key={item.id} className={a.cls}>
-                  <Td>{a.level === 2 ? <span className="alert-dot red" /> : a.level === 1 ? <span className="alert-dot amber" /> : null}</Td>
-                  <Td>{client?.nama || '-'}</Td>
-                  <Td>{item.task}</Td>
-                  <Td>{item.target_date || '-'}</Td>
-                  <Td><Tag value={item.status} /></Td>
-                  <Td>{item.link ? <a href={item.link} target="_blank" rel="noreferrer" style={{ color: 'var(--accent2)', fontSize: '0.78rem' }}>🔗 Link</a> : '-'}</Td>
-                  <ActionButtons onEdit={() => { setForm(item as any); setEditId(item.id); setModal('checklist') }} onDelete={() => delRow('b2b_checklist', item.id)} />
-                </tr>
-              )
-            })}
-          </DataTable>
-        </Card>
+        <div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14, marginBottom: 14 }}>
+            <StatCard label="Total Milestone" value={checklist.length} sub="Semua tugas klien" />
+            <StatCard label="Proses (Kerja & Review)" value={checklist.filter(item => ['Proses Kerja', 'Review Internal'].includes(item.status)).length} sub="Dalam pengerjaan" variant="blue" />
+            {(() => {
+              const totalTasks = checklist.length
+              let pct = 0
+              if (totalTasks > 0) {
+                const totalWeight = checklist.reduce((acc, item) => {
+                  if (item.status === 'Selesai Acc') return acc + 100
+                  if (item.status === 'Review Internal') return acc + 75
+                  if (item.status === 'Proses Kerja') return acc + 50
+                  return acc
+                }, 0)
+                pct = Math.round(totalWeight / totalTasks)
+              }
+              return <StatCard label="Rata-rata Progress Checklist" value={`${pct}%`} sub="Bobot status gabungan" variant="gold" />
+            })()}
+          </div>
+          <Card icon="✅" title="Milestone Checklist & Lampiran — Per Klien" actions={
+            <button className="btn btn-primary btn-sm" onClick={() => { setForm({ status: CHK_STATUS[0] }); setEditId(null); setModal('checklist') }}>+ Tambah Milestone</button>
+          }>
+            <DataTable columns={[
+              { key: 'a', label: '!', width: 18 }, { key: 'client', label: 'Client' }, { key: 'task', label: 'Tugas / Milestone' },
+              { key: 'date', label: 'Target Date' }, { key: 'status', label: 'Status' }, { key: 'link', label: 'Link' }, { key: 'ak', label: 'Aksi' },
+            ]}>
+              {checklist.map(item => {
+                const a = alertLevel({ deadline: item.target_date, status: item.status !== 'Selesai Acc' ? 'Terbuka' : null })
+                const client = clients.find(c => c.id === item.client_id)
+                return (
+                  <tr key={item.id} className={a.cls}>
+                    <Td>{a.level === 2 ? <span className="alert-dot red" /> : a.level === 1 ? <span className="alert-dot amber" /> : null}</Td>
+                    <Td>{client?.nama || '-'}</Td>
+                    <Td>{item.task}</Td>
+                    <Td>{item.target_date || '-'}</Td>
+                    <Td><Tag value={item.status} /></Td>
+                    <Td>{item.link ? <a href={item.link} target="_blank" rel="noreferrer" style={{ color: 'var(--accent2)', fontSize: '0.78rem' }}>🔗 Link</a> : '-'}</Td>
+                    <ActionButtons onEdit={() => { setForm(item as any); setEditId(item.id); setModal('checklist') }} onDelete={() => delRow('b2b_checklist', item.id)} />
+                  </tr>
+                )
+              })}
+            </DataTable>
+          </Card>
+        </div>
       )}
 
       {/* Per-client progress */}
       {activeClients.map(c => tab === `prog-${c.id}` && (
         <Card key={c.id} icon="🚀" title={`Progres End-to-End — ${c.nama}`} actions={
-          <button className="btn btn-primary btn-sm" onClick={() => { setForm({}); setEditId(null); setSelectedClient(c.id); setModal('progres') }}>+ Tambah Fase</button>
+          <button className="btn btn-primary btn-sm" onClick={() => { setForm({ status: PROGRES_STATUS[0] }); setEditId(null); setSelectedClient(c.id); setModal('progres') }}>+ Tambah Fase</button>
         }>
           <DataTable columns={[
             { key: 'fase', label: 'Fase / Proses' }, { key: 'ket', label: 'Keterangan Implementasi' },
