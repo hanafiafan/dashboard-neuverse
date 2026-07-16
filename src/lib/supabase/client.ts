@@ -372,7 +372,7 @@ function mapTableRead(tableName: string, state: typeof FALLBACK_TEMPLATE): any[]
 
   if (tableName === 'kas') {
     return (sheets.kas || []).map(k => {
-      let ket = k.ket || '';
+      let ket = String(k.ket || '');
       let file_url = '';
       const match = ket.match(/(.*) \[file_url: (.*)\]/);
       if (match) {
@@ -431,7 +431,7 @@ function mapTableRead(tableName: string, state: typeof FALLBACK_TEMPLATE): any[]
 
   if (tableName === 'forecast_cost') {
     return (sheets.forecast_cost || []).map((r, i) => {
-      let catatan = r.catatan || '';
+      let catatan = String(r.catatan || '');
       let tahun = 2026;
       const match = catatan.match(/(.*) \[year: (\d+)\]/);
       if (match) {
