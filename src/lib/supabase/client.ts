@@ -1,7 +1,12 @@
 'use client'
 
+export interface DbState {
+  sheets: Record<string, any[]>;
+  config: Record<string, any>;
+}
+
 // Default template data for offline fallback
-const FALLBACK_TEMPLATE = {
+const FALLBACK_TEMPLATE: DbState = {
   "sheets": {
     "rekrutmen": [
       { "posisi": "Continuous Improvement (CI)", "entitas": "RUN - BYL", "kategori": "Staff & Admin", "mulai": "2026-07-01T07:00:00.000Z", "selesai": null, "pct": 0, "tahap": "Screening" },
@@ -122,24 +127,11 @@ function mapIndoToEngMonth(indo: string): string | null {
 }
 
 // In-Memory Database State
-let cachedDbState: {
-  sheets: Record<string, any[]>;
-  config: Record<string, any>;
-} | null = null;
+let cachedDbState: typeof FALLBACK_TEMPLATE | null = null;
 
 let isFetching = false;
 let fetchPromise: Promise<any> | null = null;
 let fileCache: Record<string, string> = {};
-
-// Load File Cache from localStorage on client side
-if (typeof window !== 'undefined') {
-  try {
-    const fc = localStorage.getItem('NEUVERSE_FILE_CACHE');
-    if (fc) fileCache = JSON.parse(fc);
-  } catch (e) {
-    console.error(e);
-  }
-}
 
 // Get the Apps Script URL
 export function getScriptUrl(): string {
@@ -154,7 +146,7 @@ export function setScriptUrl(url: string) {
   cachedDbState = null; // reset cache
 }
 
-// Load current full state from Google Sheet (or local storage fallback)
+// Load current full state from Google Sheet
 export async function getDbState(forceRefresh = false): Promise<typeof FALLBACK_TEMPLATE> {
   if (typeof window === 'undefined') return FALLBACK_TEMPLATE;
 
@@ -164,19 +156,9 @@ export async function getDbState(forceRefresh = false): Promise<typeof FALLBACK_
 
   const scriptUrl = getScriptUrl();
 
-  // If no script URL is set, load from LocalStorage or pre-populate with template
+  // If no script URL is set, return FALLBACK_TEMPLATE directly
   if (!scriptUrl) {
-    const local = localStorage.getItem('NEUVERSE_SHEET_STATE');
-    if (local) {
-      try {
-        cachedDbState = JSON.parse(local);
-        return cachedDbState!;
-      } catch (e) {
-        // Fall back to template if corrupted
-      }
-    }
     cachedDbState = JSON.parse(JSON.stringify(FALLBACK_TEMPLATE));
-    localStorage.setItem('NEUVERSE_SHEET_STATE', JSON.stringify(cachedDbState));
     return cachedDbState!;
   }
 
@@ -189,27 +171,19 @@ export async function getDbState(forceRefresh = false): Promise<typeof FALLBACK_
   fetchPromise = fetch(scriptUrl, {
     method: 'GET',
     headers: { 'Accept': 'application/json' },
-    mode: 'cors'
+    mode: 'cors',
+    keepalive: true
   })
     .then(async (res) => {
       const json = await res.json();
       if (json.ok && json.data) {
         cachedDbState = json.data;
-        // Back up to LocalStorage for safety and offline read
-        localStorage.setItem('NEUVERSE_SHEET_STATE', JSON.stringify(cachedDbState));
         return cachedDbState!;
       }
       throw new Error(json.error || 'Failed to parse sheets response');
     })
     .catch((err) => {
-      console.warn('Google Sheet fetch error, falling back to local storage cache:', err);
-      const local = localStorage.getItem('NEUVERSE_SHEET_STATE');
-      if (local) {
-        try {
-          cachedDbState = JSON.parse(local);
-          return cachedDbState!;
-        } catch (e) {}
-      }
+      console.warn('Google Sheet fetch error, falling back to in-memory template:', err);
       cachedDbState = JSON.parse(JSON.stringify(FALLBACK_TEMPLATE));
       return cachedDbState!;
     })
@@ -226,10 +200,11 @@ async function saveDbState(state: typeof FALLBACK_TEMPLATE): Promise<void> {
   if (typeof window === 'undefined') return;
 
   cachedDbState = state;
-  localStorage.setItem('NEUVERSE_SHEET_STATE', JSON.stringify(state));
 
   const scriptUrl = getScriptUrl();
-  if (!scriptUrl) return; // Running in offline mode
+  if (!scriptUrl) {
+    throw new Error('Google Apps Script URL is not configured.');
+  }
 
   try {
     const res = await fetch(scriptUrl, {
@@ -241,14 +216,17 @@ async function saveDbState(state: typeof FALLBACK_TEMPLATE): Promise<void> {
         mode: 'writeAll',
         sheets: state.sheets,
         config: state.config
-      })
+      }),
+      keepalive: true
     });
     const json = await res.json();
     if (!json.ok) {
       console.error('Error writing to spreadsheet:', json.error);
+      throw new Error(json.error || 'Gagal menyimpan data ke Google Spreadsheet');
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error('Error sending POST request to Google Sheet:', err);
+    throw err;
   }
 }
 
@@ -821,12 +799,15 @@ class QueryBuilder {
   orderByField: string | null = null;
   orderAscending: boolean = true;
   singleRow: boolean = false;
+  action: 'select' | 'insert' | 'update' | 'delete' = 'select';
+  payload: any = null;
 
   constructor(tableName: string) {
     this.tableName = tableName;
   }
 
   select(fields: string = '*') {
+    this.action = 'select';
     return this;
   }
 
@@ -846,18 +827,45 @@ class QueryBuilder {
     return this;
   }
 
+  insert(payload: any) {
+    this.action = 'insert';
+    this.payload = payload;
+    return this;
+  }
+
+  update(payload: any) {
+    this.action = 'update';
+    this.payload = payload;
+    return this;
+  }
+
+  delete() {
+    this.action = 'delete';
+    return this;
+  }
+
   // Mimic Promise compatibility so we can await the query directly
-  async then(resolve: any, reject?: any) {
-    try {
-      const res = await this.execute();
-      resolve(res);
-    } catch (err) {
-      if (reject) reject(err);
-      else console.error(err);
-    }
+  then<TResult1 = { data: any; error: any }, TResult2 = never>(
+    onfulfilled?: ((value: { data: any; error: any }) => TResult1 | PromiseLike<TResult1>) | null,
+    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null
+  ): Promise<TResult1 | TResult2> {
+    return this.execute().then(onfulfilled as any, onrejected as any);
   }
 
   async execute() {
+    if (this.action === 'select') {
+      return this.executeSelect();
+    } else if (this.action === 'insert') {
+      return this.executeInsert();
+    } else if (this.action === 'update') {
+      return this.executeUpdate();
+    } else if (this.action === 'delete') {
+      return this.executeDelete();
+    }
+    throw new Error(`Unknown action: ${this.action}`);
+  }
+
+  async executeSelect() {
     const state = await getDbState();
     let data = mapTableRead(this.tableName, state);
 
@@ -888,11 +896,11 @@ class QueryBuilder {
     return { data, error: null };
   }
 
-  async insert(payload: any) {
+  async executeInsert() {
     notifyChange(`Menyimpan ${getFriendlyName(this.tableName)} baru ke Sheets...`, 'info');
     try {
       const state = await getDbState();
-      const rows = Array.isArray(payload) ? payload : [payload];
+      const rows = Array.isArray(this.payload) ? this.payload : [this.payload];
 
       const currentRows = mapTableRead(this.tableName, state);
 
@@ -929,14 +937,14 @@ class QueryBuilder {
       await saveDbState(state);
       notifyChange(`${getFriendlyName(this.tableName)} berhasil ditambahkan!`, 'success');
 
-      return { data: Array.isArray(payload) ? newRows : newRows[0], error: null };
+      return { data: Array.isArray(this.payload) ? newRows : newRows[0], error: null };
     } catch (err: any) {
       notifyChange(`Gagal menambahkan ${getFriendlyName(this.tableName)}: ${err.message || err}`, 'error');
       throw err;
     }
   }
 
-  async update(payload: any) {
+  async executeUpdate() {
     notifyChange(`Menyimpan perubahan ${getFriendlyName(this.tableName)} ke Sheets...`, 'info');
     try {
       const state = await getDbState();
@@ -952,7 +960,7 @@ class QueryBuilder {
           }
         }
         if (match) {
-          const updated = { ...row, ...payload, updated_at: new Date().toISOString() };
+          const updated = { ...row, ...this.payload, updated_at: new Date().toISOString() };
           updatedRows.push(updated);
           return updated;
         }
@@ -970,7 +978,7 @@ class QueryBuilder {
     }
   }
 
-  async delete() {
+  async executeDelete() {
     notifyChange(`Menghapus ${getFriendlyName(this.tableName)} dari Sheets...`, 'info');
     try {
       const state = await getDbState();
@@ -1008,24 +1016,19 @@ export const supabase = {
   storage: {
     from(bucketName: string) {
       return {
-        async upload(filePath: string, file: File, options?: any) {
+        async upload(filePath: string, file: File, options?: any): Promise<{ data: { path: string } | null; error: { message: string } | null }> {
           // Convert file to base64 data URL and cache locally
           return new Promise((resolve) => {
             const reader = new FileReader();
             reader.onloadend = () => {
               const dataUrl = reader.result as string;
               fileCache[filePath] = dataUrl;
-              try {
-                localStorage.setItem('NEUVERSE_FILE_CACHE', JSON.stringify(fileCache));
-              } catch (e) {
-                console.error('File cache localStorage write error:', e);
-              }
               resolve({ data: { path: filePath }, error: null });
             };
             reader.readAsDataURL(file);
           });
         },
-        getPublicUrl(filePath: string) {
+        getPublicUrl(filePath: string): { data: { publicUrl: string } } {
           const publicUrl = fileCache[filePath] || '';
           return { data: { publicUrl } };
         }

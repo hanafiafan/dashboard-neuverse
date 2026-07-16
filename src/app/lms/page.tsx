@@ -8,8 +8,10 @@ import Modal, { FormGroup, FormInput, FormSelect, ModalActions, BtnPrimary, BtnO
 import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
 import Tag from '@/components/ui/Tag'
 import { LMS_FASE_STATUS, LMS_PRIORITAS, TRAINER_STATUS } from '@/lib/utils'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 export default function LMSPage() {
+  const confirm = useConfirm()
   const [fase, setFase] = useState<LmsFase[]>([])
   const [kendala, setKendala] = useState<LmsKendala[]>([])
   const [trainers, setTrainers] = useState<Trainer[]>([])
@@ -28,25 +30,37 @@ export default function LMSPage() {
   }
 
   async function saveFase() {
-    const p = { fase: form.fase || '', deskripsi: form.deskripsi || '', target: form.target || '', progress: Number(form.progress) || 0, status: form.status || LMS_FASE_STATUS[0] }
-    if (editId) await (supabase.from('lms_fase') as any).update(p).eq('id', editId)
-    else await (supabase.from('lms_fase') as any).insert(p)
-    setModal(null); loadData()
+    try {
+      const p = { fase: form.fase || '', deskripsi: form.deskripsi || '', target: form.target || '', progress: Number(form.progress) || 0, status: form.status || LMS_FASE_STATUS[0] }
+      if (editId) await (supabase.from('lms_fase') as any).update(p).eq('id', editId)
+      else await (supabase.from('lms_fase') as any).insert(p)
+      setModal(null); loadData()
+    } catch (err) {
+      console.error('Failed to save Fase:', err)
+    }
   }
   async function saveKendala() {
-    const p = { kendala: form.kendala || '', prioritas: form.prioritas || LMS_PRIORITAS[1], pic: form.pic || '', deadline: form.deadline || null, status: form.status || 'Antre' }
-    if (editId) await (supabase.from('lms_kendala') as any).update(p).eq('id', editId)
-    else await (supabase.from('lms_kendala') as any).insert(p)
-    setModal(null); loadData()
+    try {
+      const p = { kendala: form.kendala || '', prioritas: form.prioritas || LMS_PRIORITAS[1], pic: form.pic || '', deadline: form.deadline || null, status: form.status || 'Antre' }
+      if (editId) await (supabase.from('lms_kendala') as any).update(p).eq('id', editId)
+      else await (supabase.from('lms_kendala') as any).insert(p)
+      setModal(null); loadData()
+    } catch (err) {
+      console.error('Failed to save Kendala:', err)
+    }
   }
   async function saveTrainer() {
-    const p = { nama: form.nama || '', bidang: form.bidang || '', email: form.email || '', hp: form.hp || '', sertifikasi: form.sertifikasi || '', materi: form.materi || '', status: form.status || 'Aktif' }
-    if (editId) await (supabase.from('trainer') as any).update(p).eq('id', editId)
-    else await (supabase.from('trainer') as any).insert(p)
-    setModal(null); loadData()
+    try {
+      const p = { nama: form.nama || '', bidang: form.bidang || '', email: form.email || '', hp: form.hp || '', sertifikasi: form.sertifikasi || '', materi: form.materi || '', status: form.status || 'Aktif' }
+      if (editId) await (supabase.from('trainer') as any).update(p).eq('id', editId)
+      else await (supabase.from('trainer') as any).insert(p)
+      setModal(null); loadData()
+    } catch (err) {
+      console.error('Failed to save Trainer:', err)
+    }
   }
   async function delRow(table: string, id: string) {
-    if (!confirm('Hapus?')) return
+    if (!await confirm('Apakah Anda yakin ingin menghapus data ini?')) return
     await (supabase.from(table as any) as any).delete().eq('id', id); loadData()
   }
 

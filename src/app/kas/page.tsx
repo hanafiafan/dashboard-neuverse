@@ -9,6 +9,7 @@ import { InnerTabs } from '@/components/ui/Card'
 import Modal, { FormGroup, FormInput, FormSelect, ModalActions, BtnPrimary, BtnOutline } from '@/components/ui/Modal'
 import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
 import { formatRp, todayStr } from '@/lib/utils'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 const TABS = [
   { key: 'master', label: '📊 Konsolidasi' },
@@ -20,6 +21,7 @@ const TABS = [
 ]
 
 export default function KasPage() {
+  const confirm = useConfirm()
   const [tab, setTab] = useState('master')
   const [kas, setKas] = useState<Kas[]>([])
   const [modal, setModal] = useState(false)
@@ -47,7 +49,7 @@ export default function KasPage() {
           
         if (uploadErr) {
           console.error('Error uploading file:', uploadErr)
-          alert('Gagal mengunggah bukti: ' + uploadErr.message)
+          throw new Error('Gagal mengunggah bukti: ' + uploadErr.message)
         } else {
           const { data: publicUrlData } = supabase.storage
             .from('documents')
@@ -70,13 +72,19 @@ export default function KasPage() {
       loadData()
     } catch (err: any) {
       console.error(err)
-      alert('Gagal menyimpan transaksi: ' + err.message)
+      if (err.message && err.message.startsWith('Gagal mengunggah bukti:')) {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('neuverse-toast', {
+            detail: { message: err.message, type: 'error' }
+          }))
+        }
+      }
     } finally {
       setSaving(false)
     }
   }
   async function delKas(id: string) {
-    if (!confirm('Hapus?')) return
+    if (!await confirm('Apakah Anda yakin ingin menghapus transaksi kas ini?')) return
     await (supabase.from('kas') as any).delete().eq('id', id); loadData()
   }
 

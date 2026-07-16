@@ -10,8 +10,10 @@ import Modal, { FormGroup, FormInput, FormSelect, ModalActions, BtnPrimary, BtnO
 import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
 import Tag from '@/components/ui/Tag'
 import { formatRp, todayStr, scoreLead, tempLead, LEAD_CH, LEAD_STAGE, FUNNEL_STAGE, PLATFORM, CNT_STATUS } from '@/lib/utils'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 export default function MarketingPage() {
+  const confirm = useConfirm()
   const [tab, setTab] = useState('leads')
   const [leads, setLeads] = useState<Lead[]>([])
   const [channels, setChannels] = useState<ChannelCost[]>([])
@@ -69,7 +71,7 @@ export default function MarketingPage() {
   }
 
   async function delRow(table: string, id: string) {
-    if (!confirm('Hapus?')) return
+    if (!await confirm('Apakah Anda yakin ingin menghapus data ini?')) return
     await (supabase.from(table as any) as any).delete().eq('id', id); loadData()
   }
 

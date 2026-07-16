@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { ReactNode, Children } from 'react'
 
 interface Column {
   key: string
@@ -14,6 +14,8 @@ interface DataTableProps {
 }
 
 export default function DataTable({ columns, children, emptyMessage, minWidth }: DataTableProps) {
+  const hasRows = Children.toArray(children).filter(Boolean).length > 0;
+
   return (
     <div style={{ overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', minWidth }}>
@@ -42,7 +44,7 @@ export default function DataTable({ columns, children, emptyMessage, minWidth }:
         </thead>
         <tbody>{children}</tbody>
       </table>
-      {!children && emptyMessage && (
+      {!hasRows && emptyMessage && (
         <div style={{ textAlign: 'center', padding: '24px', color: 'var(--muted)', fontSize: '0.85rem' }}>
           {emptyMessage}
         </div>

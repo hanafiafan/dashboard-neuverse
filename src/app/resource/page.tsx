@@ -10,8 +10,10 @@ import Modal, { FormGroup, FormInput, FormSelect, ModalActions, BtnPrimary, BtnO
 import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
 import Tag from '@/components/ui/Tag'
 import { CAP_STATUS, LOAD_STATUS } from '@/lib/utils'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 export default function ResourcePage() {
+  const confirm = useConfirm()
   const [tab, setTab] = useState('trainer')
   const [caps, setCaps] = useState<CapTrainer[]>([])
   const [loads, setLoads] = useState<StaffLoad[]>([])
@@ -31,34 +33,42 @@ export default function ResourcePage() {
   }
 
   async function saveCap() {
-    const p = {
-      nama: form.nama || '',
-      max_batch: Number(form.max_batch) || 0,
-      current_batch: Number(form.current_batch) || 0,
-      status: form.status || CAP_STATUS[0],
-      kpi: form.kpi || '',
+    try {
+      const p = {
+        nama: form.nama || '',
+        max_batch: Number(form.max_batch) || 0,
+        current_batch: Number(form.current_batch) || 0,
+        status: form.status || CAP_STATUS[0],
+        kpi: form.kpi || '',
+      }
+      if (editId) await (supabase.from('cap_trainer') as any).update(p).eq('id', editId)
+      else await (supabase.from('cap_trainer') as any).insert(p)
+      setModal(null); loadData()
+    } catch (err) {
+      console.error('Failed to save Trainer Capacity:', err)
     }
-    if (editId) await (supabase.from('cap_trainer') as any).update(p).eq('id', editId)
-    else await (supabase.from('cap_trainer') as any).insert(p)
-    setModal(null); loadData()
   }
 
   async function saveLoad() {
-    const p = {
-      nama: form.nama || '',
-      jabatan: form.jabatan || '',
-      max_jam: Number(form.max_jam) || 0,
-      current_jam: Number(form.current_jam) || 0,
-      status: form.status || LOAD_STATUS[0],
-      kpi: form.kpi || '',
+    try {
+      const p = {
+        nama: form.nama || '',
+        jabatan: form.jabatan || '',
+        max_jam: Number(form.max_jam) || 0,
+        current_jam: Number(form.current_jam) || 0,
+        status: form.status || LOAD_STATUS[0],
+        kpi: form.kpi || '',
+      }
+      if (editId) await (supabase.from('staff_load') as any).update(p).eq('id', editId)
+      else await (supabase.from('staff_load') as any).insert(p)
+      setModal(null); loadData()
+    } catch (err) {
+      console.error('Failed to save Staff Workload:', err)
     }
-    if (editId) await (supabase.from('staff_load') as any).update(p).eq('id', editId)
-    else await (supabase.from('staff_load') as any).insert(p)
-    setModal(null); loadData()
   }
 
   async function delRow(table: string, id: string) {
-    if (!confirm('Hapus?')) return
+    if (!await confirm('Apakah Anda yakin ingin menghapus data ini?')) return
     await (supabase.from(table as any) as any).delete().eq('id', id); loadData()
   }
 

@@ -10,8 +10,10 @@ import Modal, { FormGroup, FormInput, FormSelect, ModalActions, BtnPrimary, BtnO
 import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
 import Tag from '@/components/ui/Tag'
 import { SENTIMEN, FB_STATUS, npsCat, todayStr } from '@/lib/utils'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 export default function ClientSuccessPage() {
+  const confirm = useConfirm()
   const [tab, setTab] = useState('nps')
   const [npsData, setNpsData] = useState<NPS[]>([])
   const [feedback, setFeedback] = useState<Feedback[]>([])
@@ -31,32 +33,40 @@ export default function ClientSuccessPage() {
   }
 
   async function saveNps() {
-    const p = {
-      klien: form.klien || '',
-      skor: Number(form.skor) || 0,
-      tanggal: form.tanggal || todayStr(),
-      komentar: form.komentar || '',
+    try {
+      const p = {
+        klien: form.klien || '',
+        skor: Number(form.skor) || 0,
+        tanggal: form.tanggal || todayStr(),
+        komentar: form.komentar || '',
+      }
+      if (editId) await (supabase.from('nps') as any).update(p).eq('id', editId)
+      else await (supabase.from('nps') as any).insert(p)
+      setModal(null); loadData()
+    } catch (err) {
+      console.error('Failed to save NPS:', err)
     }
-    if (editId) await (supabase.from('nps') as any).update(p).eq('id', editId)
-    else await (supabase.from('nps') as any).insert(p)
-    setModal(null); loadData()
   }
 
   async function saveFeedback() {
-    const p = {
-      klien: form.klien || '',
-      kategori: form.kategori || '',
-      isi: form.isi || '',
-      sentimen: form.sentimen || SENTIMEN[1],
-      status: form.status || FB_STATUS[0],
+    try {
+      const p = {
+        klien: form.klien || '',
+        kategori: form.kategori || '',
+        isi: form.isi || '',
+        sentimen: form.sentimen || SENTIMEN[1],
+        status: form.status || FB_STATUS[0],
+      }
+      if (editId) await (supabase.from('feedback') as any).update(p).eq('id', editId)
+      else await (supabase.from('feedback') as any).insert(p)
+      setModal(null); loadData()
+    } catch (err) {
+      console.error('Failed to save Feedback:', err)
     }
-    if (editId) await (supabase.from('feedback') as any).update(p).eq('id', editId)
-    else await (supabase.from('feedback') as any).insert(p)
-    setModal(null); loadData()
   }
 
   async function delRow(table: string, id: string) {
-    if (!confirm('Hapus?')) return
+    if (!await confirm('Apakah Anda yakin ingin menghapus data ini?')) return
     await (supabase.from(table as any) as any).delete().eq('id', id); loadData()
   }
 

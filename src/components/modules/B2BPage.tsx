@@ -9,10 +9,12 @@ import Modal, { FormGroup, FormInput, FormSelect, ModalActions, BtnPrimary, BtnO
 import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
 import Tag from '@/components/ui/Tag'
 import { CLIENT_STATUS, STAGE_B2B, PROGRES_STATUS, CHK_STATUS, alertLevel, todayStr } from '@/lib/utils'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 interface Props { scope: 'internal' | 'external' }
 
 export default function B2BPage({ scope }: Props) {
+  const confirm = useConfirm()
   const label = scope === 'internal' ? 'B2B Internal' : 'B2B Eksternal'
   const icon = scope === 'internal' ? '🏢' : '🌐'
 
@@ -46,17 +48,25 @@ export default function B2BPage({ scope }: Props) {
   const activeClients = clients.filter(c => c.status === 'Aktif')
 
   async function saveClient() {
-    const payload = { scope, nama: form.nama || '', layanan: form.layanan || '', nilai: Number(form.nilai) || 0, pic: form.pic || '', status: form.status || 'Aktif' }
-    if (editId) await (supabase.from('b2b_clients') as any).update(payload).eq('id', editId)
-    else await (supabase.from('b2b_clients') as any).insert(payload)
-    setModal(null); loadData()
+    try {
+      const payload = { scope, nama: form.nama || '', layanan: form.layanan || '', nilai: Number(form.nilai) || 0, pic: form.pic || '', status: form.status || 'Aktif' }
+      if (editId) await (supabase.from('b2b_clients') as any).update(payload).eq('id', editId)
+      else await (supabase.from('b2b_clients') as any).insert(payload)
+      setModal(null); loadData()
+    } catch (err) {
+      console.error('Failed to save client:', err)
+    }
   }
 
   async function savePipeline() {
-    const payload = { scope, nama: form.nama || '', layanan: form.layanan || '', nilai: Number(form.nilai) || 0, pic: form.pic || '', stage: form.stage || 'Prospek', prob: Number(form.prob) || 0, score: Number(form.score) || 0 }
-    if (editId) await (supabase.from('b2b_pipeline') as any).update(payload).eq('id', editId)
-    else await (supabase.from('b2b_pipeline') as any).insert(payload)
-    setModal(null); loadData()
+    try {
+      const payload = { scope, nama: form.nama || '', layanan: form.layanan || '', nilai: Number(form.nilai) || 0, pic: form.pic || '', stage: form.stage || 'Prospek', prob: Number(form.prob) || 0, score: Number(form.score) || 0 }
+      if (editId) await (supabase.from('b2b_pipeline') as any).update(payload).eq('id', editId)
+      else await (supabase.from('b2b_pipeline') as any).insert(payload)
+      setModal(null); loadData()
+    } catch (err) {
+      console.error('Failed to save pipeline:', err)
+    }
   }
 
   async function saveChecklist() {
@@ -64,21 +74,29 @@ export default function B2BPage({ scope }: Props) {
       alert('Silakan pilih client terlebih dahulu')
       return
     }
-    const payload = { scope, client_id: form.client_id, task: form.task || '', target_date: form.target_date || null, status: form.status || 'Belum Mulai', link: form.link || '' }
-    if (editId) await (supabase.from('b2b_checklist') as any).update(payload).eq('id', editId)
-    else await (supabase.from('b2b_checklist') as any).insert(payload)
-    setModal(null); loadData()
+    try {
+      const payload = { scope, client_id: form.client_id, task: form.task || '', target_date: form.target_date || null, status: form.status || 'Belum Mulai', link: form.link || '' }
+      if (editId) await (supabase.from('b2b_checklist') as any).update(payload).eq('id', editId)
+      else await (supabase.from('b2b_checklist') as any).insert(payload)
+      setModal(null); loadData()
+    } catch (err) {
+      console.error('Failed to save checklist:', err)
+    }
   }
 
   async function saveProgres() {
-    const payload = { client_id: selectedClient, fase: form.fase || '', keterangan: form.keterangan || '', tanggal: form.tanggal || null, status: form.status || 'Belum' }
-    if (editId) await (supabase.from('b2b_progres') as any).update(payload).eq('id', editId)
-    else await (supabase.from('b2b_progres') as any).insert(payload)
-    setModal(null); loadData()
+    try {
+      const payload = { client_id: selectedClient, fase: form.fase || '', keterangan: form.keterangan || '', tanggal: form.tanggal || null, status: form.status || 'Belum' }
+      if (editId) await (supabase.from('b2b_progres') as any).update(payload).eq('id', editId)
+      else await (supabase.from('b2b_progres') as any).insert(payload)
+      setModal(null); loadData()
+    } catch (err) {
+      console.error('Failed to save progres:', err)
+    }
   }
 
   async function delRow(table: string, id: string) {
-    if (!confirm('Hapus?')) return
+    if (!await confirm('Apakah Anda yakin ingin menghapus data B2B ini?')) return
     await (supabase.from(table as any) as any).delete().eq('id', id)
     loadData()
   }

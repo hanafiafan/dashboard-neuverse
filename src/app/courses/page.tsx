@@ -9,8 +9,10 @@ import Modal, { FormGroup, FormInput, FormSelect, ModalActions, BtnPrimary, BtnO
 import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
 import Tag from '@/components/ui/Tag'
 import { COURSE_STATUS, KELAS_STATUS } from '@/lib/utils'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 export default function CoursesPage() {
+  const confirm = useConfirm()
   const [tab, setTab] = useState('offline')
   const [offline, setOffline] = useState<Batch[]>([])
   const [online, setOnline] = useState<Batch[]>([])
@@ -33,22 +35,30 @@ export default function CoursesPage() {
   }
 
   async function saveBatch(kind: 'offline' | 'online') {
-    const table = kind === 'offline' ? 'batch_offline' : 'batch_online'
-    const payload = { nama: form.nama || '', tanggal: form.tanggal || null, tempat: form.tempat || '', trainer: form.trainer || '', peserta: Number(form.peserta) || 0, status: form.status || 'Pipeline' }
-    if (editId) await (supabase.from(table) as any).update(payload).eq('id', editId)
-    else await (supabase.from(table) as any).insert(payload)
-    setModal(null); loadData()
+    try {
+      const table = kind === 'offline' ? 'batch_offline' : 'batch_online'
+      const payload = { nama: form.nama || '', tanggal: form.tanggal || null, tempat: form.tempat || '', trainer: form.trainer || '', peserta: Number(form.peserta) || 0, status: form.status || 'Pipeline' }
+      if (editId) await (supabase.from(table) as any).update(payload).eq('id', editId)
+      else await (supabase.from(table) as any).insert(payload)
+      setModal(null); loadData()
+    } catch (err) {
+      console.error('Failed to save batch:', err)
+    }
   }
 
   async function saveKelas() {
-    const payload = { nama: form.nama || '', kategori: form.kategori || '', modul: Number(form.modul) || 0, peserta: Number(form.peserta) || 0, progress: Number(form.progress) || 0, status: form.status || 'Baru' }
-    if (editId) await (supabase.from('kelas') as any).update(payload).eq('id', editId)
-    else await (supabase.from('kelas') as any).insert(payload)
-    setModal(null); loadData()
+    try {
+      const payload = { nama: form.nama || '', kategori: form.kategori || '', modul: Number(form.modul) || 0, peserta: Number(form.peserta) || 0, progress: Number(form.progress) || 0, status: form.status || 'Baru' }
+      if (editId) await (supabase.from('kelas') as any).update(payload).eq('id', editId)
+      else await (supabase.from('kelas') as any).insert(payload)
+      setModal(null); loadData()
+    } catch (err) {
+      console.error('Failed to save kelas:', err)
+    }
   }
 
   async function delRow(table: string, id: string) {
-    if (!confirm('Hapus?')) return
+    if (!await confirm('Apakah Anda yakin ingin menghapus data ini?')) return
     await (supabase.from(table as any) as any).delete().eq('id', id)
     loadData()
   }

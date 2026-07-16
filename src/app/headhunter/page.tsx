@@ -10,8 +10,10 @@ import Modal, { FormGroup, FormInput, FormSelect, ModalActions, BtnPrimary, BtnO
 import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
 import Tag from '@/components/ui/Tag'
 import { KATEGORI_HH, TAHAP_HH, PRIORITAS, alertLevel, todayStr } from '@/lib/utils'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 export default function HeadhunterPage() {
+  const confirm = useConfirm()
   const [tab, setTab] = useState('dashboard')
   const [rekrutmen, setRekrutmen] = useState<Rekrutmen[]>([])
   const [kritis, setKritis] = useState<Kritis[]>([])
@@ -33,53 +35,61 @@ export default function HeadhunterPage() {
   }
 
   async function saveRekrutmen() {
-    const payload = {
-      posisi: form.posisi || '',
-      entitas: form.entitas || '',
-      kategori: form.kategori || KATEGORI_HH[0],
-      mulai: form.mulai || null,
-      selesai: form.selesai || null,
-      pct: Number(form.pct) || 0,
-      tahap: form.tahap || TAHAP_HH[0],
-      catatan: form.catatan || '',
-      file_ol: form.file_ol || '',
-      karyawan: form.karyawan || '',
-      media: form.media || '',
-      deadline: form.deadline || null,
-      lokasi: form.lokasi || '',
+    try {
+      const payload = {
+        posisi: form.posisi || '',
+        entitas: form.entitas || '',
+        kategori: form.kategori || KATEGORI_HH[0],
+        mulai: form.mulai || null,
+        selesai: form.selesai || null,
+        pct: Number(form.pct) || 0,
+        tahap: form.tahap || TAHAP_HH[0],
+        catatan: form.catatan || '',
+        file_ol: form.file_ol || '',
+        karyawan: form.karyawan || '',
+        media: form.media || '',
+        deadline: form.deadline || null,
+        lokasi: form.lokasi || '',
+      }
+      if (editIdx !== null) {
+        await (supabase.from('rekrutmen') as any).update(payload).eq('id', rekrutmen[editIdx].id)
+      } else {
+        await (supabase.from('rekrutmen') as any).insert(payload)
+      }
+      setModal(null); loadData()
+    } catch (err) {
+      console.error('Failed to save Rekrutmen:', err)
     }
-    if (editIdx !== null) {
-      await (supabase.from('rekrutmen') as any).update(payload).eq('id', rekrutmen[editIdx].id)
-    } else {
-      await (supabase.from('rekrutmen') as any).insert(payload)
-    }
-    setModal(null); loadData()
   }
 
   async function saveKritis() {
-    const payload = {
-      posisi: form.posisi || '',
-      entitas: form.entitas || '',
-      prioritas: form.prioritas || PRIORITAS[2],
-      deadline: form.deadline || null,
-      catatan: form.catatan || '',
+    try {
+      const payload = {
+        posisi: form.posisi || '',
+        entitas: form.entitas || '',
+        prioritas: form.prioritas || PRIORITAS[0],
+        deadline: form.deadline || null,
+        catatan: form.catatan || '',
+      }
+      if (editIdx !== null) {
+        await (supabase.from('kritis') as any).update(payload).eq('id', kritis[editIdx].id)
+      } else {
+        await (supabase.from('kritis') as any).insert(payload)
+      }
+      setModal(null); loadData()
+    } catch (err) {
+      console.error('Failed to save Kritis:', err)
     }
-    if (editIdx !== null) {
-      await (supabase.from('kritis') as any).update(payload).eq('id', kritis[editIdx].id)
-    } else {
-      await (supabase.from('kritis') as any).insert(payload)
-    }
-    setModal(null); loadData()
   }
 
   async function delRekrutmen(id: string) {
-    if (!confirm('Hapus?')) return
+    if (!await confirm('Apakah Anda yakin ingin menghapus data rekrutmen ini?')) return
     await (supabase.from('rekrutmen') as any).delete().eq('id', id)
     loadData()
   }
 
   async function delKritis(id: string) {
-    if (!confirm('Hapus?')) return
+    if (!await confirm('Apakah Anda yakin ingin menghapus data kritis ini?')) return
     await (supabase.from('kritis') as any).delete().eq('id', id)
     loadData()
   }

@@ -9,8 +9,10 @@ import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
 import Tag from '@/components/ui/Tag'
 import StatCard from '@/components/ui/StatCard'
 import { PRIORITAS, MITIGASI_STATUS, alertLevel, daysSince } from '@/lib/utils'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 export default function MitigasiPage() {
+  const confirm = useConfirm()
   const [rows, setRows] = useState<Mitigasi[]>([])
   const [modal, setModal] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
@@ -24,23 +26,27 @@ export default function MitigasiPage() {
   }
 
   async function save() {
-    const p = {
-      risiko: form.risiko || '',
-      dampak: form.dampak || '',
-      probabilitas: form.probabilitas || 'Rendah',
-      prioritas: form.prioritas || 'Sedang',
-      pic: form.pic || '',
-      deadline: form.deadline || null,
-      tindakan: form.tindakan || '',
-      status: form.status || MITIGASI_STATUS[0],
+    try {
+      const p = {
+        risiko: form.risiko || '',
+        dampak: form.dampak || '',
+        probabilitas: form.probabilitas || 'Rendah',
+        prioritas: form.prioritas || 'Sedang',
+        pic: form.pic || '',
+        deadline: form.deadline || null,
+        tindakan: form.tindakan || '',
+        status: form.status || MITIGASI_STATUS[0],
+      }
+      if (editId) await (supabase.from('mitigasi') as any).update(p).eq('id', editId)
+      else await (supabase.from('mitigasi') as any).insert(p)
+      setModal(false); loadData()
+    } catch (err) {
+      console.error('Failed to save Mitigasi:', err)
     }
-    if (editId) await (supabase.from('mitigasi') as any).update(p).eq('id', editId)
-    else await (supabase.from('mitigasi') as any).insert(p)
-    setModal(false); loadData()
   }
 
   async function del(id: string) {
-    if (!confirm('Hapus?')) return
+    if (!await confirm('Apakah Anda yakin ingin menghapus data mitigasi ini?')) return
     await (supabase.from('mitigasi') as any).delete().eq('id', id); loadData()
   }
 

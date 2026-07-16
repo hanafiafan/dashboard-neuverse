@@ -66,12 +66,25 @@ export default function Topbar() {
   }
 
   const forceSync = async () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('neuverse-toast', {
+        detail: { message: 'Menyinkronkan data dari Google Sheets...', type: 'info' }
+      }))
+    }
     try {
       await getDbState(true)
-      alert('Data berhasil disinkronisasi ulang dari Google Sheets!')
-      window.location.reload()
-    } catch (err) {
-      alert('Gagal menyinkronkan data: ' + err)
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('neuverse-toast', {
+          detail: { message: 'Data berhasil disinkronisasi ulang dari Google Sheets!', type: 'success' }
+        }))
+      }
+      setTimeout(() => window.location.reload(), 1500)
+    } catch (err: any) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('neuverse-toast', {
+          detail: { message: 'Gagal menyinkronkan data: ' + (err.message || err), type: 'error' }
+        }))
+      }
     }
   }
 

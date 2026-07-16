@@ -10,8 +10,10 @@ import Modal, { FormGroup, FormInput, FormSelect, ModalActions, BtnPrimary, BtnO
 import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
 import Tag from '@/components/ui/Tag'
 import { formatRp, CASH_TIPE, DIVISI, todayStr } from '@/lib/utils'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 export default function FinancePage() {
+  const confirm = useConfirm()
   const [tab, setTab] = useState('kesehatan')
   const [cashflow, setCashflow] = useState<Cashflow[]>([])
   const [finRekap, setFinRekap] = useState<FinRekap[]>([])
@@ -38,21 +40,29 @@ export default function FinancePage() {
   }
 
   async function saveCash() {
-    const p = { tanggal: form.tanggal || todayStr(), tipe: form.tipe as any, kategori: form.kategori || '', divisi: form.divisi || '', nominal: Number(form.nominal) || 0 }
-    if (editId) await (supabase.from('cashflow') as any).update(p).eq('id', editId)
-    else await (supabase.from('cashflow') as any).insert(p)
-    setModal(null); loadData()
+    try {
+      const p = { tanggal: form.tanggal || todayStr(), tipe: form.tipe as any, kategori: form.kategori || '', divisi: form.divisi || '', nominal: Number(form.nominal) || 0 }
+      if (editId) await (supabase.from('cashflow') as any).update(p).eq('id', editId)
+      else await (supabase.from('cashflow') as any).insert(p)
+      setModal(null); loadData()
+    } catch (err) {
+      console.error('Failed to save Cash:', err)
+    }
   }
 
   async function saveRekap() {
-    const p = { divisi: form.divisi || '', masuk: Number(form.masuk) || 0, keluar: Number(form.keluar) || 0, ket: form.ket || '' }
-    if (editId) await (supabase.from('fin_rekap') as any).update(p).eq('id', editId)
-    else await (supabase.from('fin_rekap') as any).insert(p)
-    setModal(null); loadData()
+    try {
+      const p = { divisi: form.divisi || '', masuk: Number(form.masuk) || 0, keluar: Number(form.keluar) || 0, ket: form.ket || '' }
+      if (editId) await (supabase.from('fin_rekap') as any).update(p).eq('id', editId)
+      else await (supabase.from('fin_rekap') as any).insert(p)
+      setModal(null); loadData()
+    } catch (err) {
+      console.error('Failed to save Rekap:', err)
+    }
   }
 
   async function delRow(table: string, id: string) {
-    if (!confirm('Hapus?')) return
+    if (!await confirm('Apakah Anda yakin ingin menghapus data keuangan ini?')) return
     await (supabase.from(table as any) as any).delete().eq('id', id); loadData()
   }
 

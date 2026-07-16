@@ -9,10 +9,12 @@ import Modal, { FormGroup, FormInput, FormSelect, ModalActions, BtnPrimary, BtnO
 import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
 import StatCard from '@/components/ui/StatCard'
 import { formatRp, DIVISI, MONTH_KEYS, BULAN } from '@/lib/utils'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 const MONTHS = MONTH_KEYS // ['jan','feb',...,'des']
 
 export default function ForecastingPage() {
+  const confirm = useConfirm()
   const [tab, setTab] = useState('target')
   const [forecasts, setForecasts] = useState<Forecast[]>([])
   const [costs, setCosts] = useState<ForecastCost[]>([])
@@ -33,23 +35,31 @@ export default function ForecastingPage() {
   }
 
   async function saveFc() {
-    const p: any = { divisi: form.divisi || '', tahun: year }
-    MONTHS.forEach(m => { p[m] = Number(form[m]) || 0 })
-    if (editId) await (supabase.from('forecast') as any).update(p).eq('id', editId)
-    else await (supabase.from('forecast') as any).insert(p)
-    setModal(null); loadData()
+    try {
+      const p: any = { divisi: form.divisi || '', tahun: year }
+      MONTHS.forEach(m => { p[m] = Number(form[m]) || 0 })
+      if (editId) await (supabase.from('forecast') as any).update(p).eq('id', editId)
+      else await (supabase.from('forecast') as any).insert(p)
+      setModal(null); loadData()
+    } catch (err) {
+      console.error('Failed to save Target Revenue:', err)
+    }
   }
 
   async function saveCost() {
-    const p: any = { kategori: form.kategori || '', tipe: form.tipe || 'Fixed', tahun: year }
-    MONTHS.forEach(m => { p[m] = Number(form[m]) || 0 })
-    if (editId) await (supabase.from('forecast_cost') as any).update(p).eq('id', editId)
-    else await (supabase.from('forecast_cost') as any).insert(p)
-    setModal(null); loadData()
+    try {
+      const p: any = { kategori: form.kategori || '', tipe: form.tipe || 'Fixed', tahun: year }
+      MONTHS.forEach(m => { p[m] = Number(form[m]) || 0 })
+      if (editId) await (supabase.from('forecast_cost') as any).update(p).eq('id', editId)
+      else await (supabase.from('forecast_cost') as any).insert(p)
+      setModal(null); loadData()
+    } catch (err) {
+      console.error('Failed to save Cost:', err)
+    }
   }
 
   async function delRow(table: string, id: string) {
-    if (!confirm('Hapus?')) return
+    if (!await confirm('Apakah Anda yakin ingin menghapus data ini?')) return
     await (supabase.from(table as any) as any).delete().eq('id', id); loadData()
   }
 
