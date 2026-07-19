@@ -111,3 +111,7 @@ export function alertLevel({ deadline, status, created, priority }: {
 
 export const clsx = (...classes: (string | undefined | null | false)[]): string =>
   classes.filter(Boolean).join(' ')
+
+// Dokumen bukti/lampiran hanya boleh berupa link Google Drive/Workspace (Supabase Storage tidak dipakai untuk simpan file)
+const GOOGLE_DOC_LINK_RE = /^https:\/\/(drive|docs|sheets|slides|forms)\.google\.com\//
+export const isGoogleDocLink = (url: string): boolean => GOOGLE_DOC_LINK_RE.test(url.trim())

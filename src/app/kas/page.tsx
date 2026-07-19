@@ -8,7 +8,7 @@ import Card from '@/components/ui/Card'
 import { InnerTabs } from '@/components/ui/Card'
 import Modal, { FormGroup, FormInput, FormSelect, ModalActions, BtnPrimary, BtnOutline } from '@/components/ui/Modal'
 import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
-import { formatRp, todayStr } from '@/lib/utils'
+import { formatRp, todayStr, isGoogleDocLink } from '@/lib/utils'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 const TABS = [
@@ -26,7 +26,6 @@ export default function KasPage() {
   const [kas, setKas] = useState<Kas[]>([])
   const [modal, setModal] = useState(false)
   const [form, setForm] = useState<Record<string, any>>({ jenis: 'masuk', tgl: todayStr() })
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => { loadData() }, [])
@@ -35,29 +34,17 @@ export default function KasPage() {
     setKas(data || [])
   }
   async function saveKas() {
-    setSaving(true)
-    let fileUrl = ''
-    try {
-      if (selectedFile) {
-        const fileExt = selectedFile.name.split('.').pop()
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`
-        const filePath = `kas/${fileName}`
-        
-        const { data: uploadData, error: uploadErr } = await supabase.storage
-          .from('documents')
-          .upload(filePath, selectedFile, { cacheControl: '3600', upsert: false })
-          
-        if (uploadErr) {
-          console.error('Error uploading file:', uploadErr)
-          throw new Error('Gagal mengunggah bukti: ' + uploadErr.message)
-        } else {
-          const { data: publicUrlData } = supabase.storage
-            .from('documents')
-            .getPublicUrl(filePath)
-          fileUrl = publicUrlData?.publicUrl || ''
-        }
+    const fileUrl = (form.file_url || '').trim()
+    if (fileUrl && !isGoogleDocLink(fileUrl)) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('neuverse-toast', {
+          detail: { message: 'Link bukti harus berupa link Google Drive/Docs/Sheets/Slides/Forms.', type: 'error' }
+        }))
       }
-
+      return
+    }
+    setSaving(true)
+    try {
       await (supabase.from('kas') as any).insert({
         divisi: form.divisi || 'headhunter',
         tgl: form.tgl || todayStr(),
@@ -67,18 +54,10 @@ export default function KasPage() {
         file_url: fileUrl,
       })
 
-      setSelectedFile(null)
       setModal(false)
       loadData()
     } catch (err: any) {
       console.error(err)
-      if (err.message && err.message.startsWith('Gagal mengunggah bukti:')) {
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('neuverse-toast', {
-            detail: { message: err.message, type: 'error' }
-          }))
-        }
-      }
     } finally {
       setSaving(false)
     }
@@ -184,17 +163,15 @@ export default function KasPage() {
           </FormGroup>
           <FormGroup label="Nominal (Rp)"><FormInput type="number" value={form.nominal || ''} onChange={e => setForm(f => ({ ...f, nominal: e.target.value }))} /></FormGroup>
         </div>
-        <FormGroup label="Bukti Transaksi (File)">
-          <FormInput type="file" onChange={e => {
-            if (e.target.files && e.target.files.length > 0) {
-              setSelectedFile(e.target.files[0])
-            } else {
-              setSelectedFile(null)
-            }
-          }} />
+        <FormGroup label="Link Bukti (Google Drive/Docs/Sheets/Slides/Forms)">
+          <FormInput
+            value={form.file_url || ''}
+            onChange={e => setForm(f => ({ ...f, file_url: e.target.value }))}
+            placeholder="https://drive.google.com/..."
+          />
         </FormGroup>
         <ModalActions>
-          <BtnOutline onClick={() => { setModal(false); setSelectedFile(null) }} disabled={saving}>Batal</BtnOutline>
+          <BtnOutline onClick={() => setModal(false)} disabled={saving}>Batal</BtnOutline>
           <BtnPrimary onClick={saveKas} disabled={saving}>
             {saving ? 'Menyimpan...' : 'Simpan'}
           </BtnPrimary>

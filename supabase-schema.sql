@@ -179,7 +179,8 @@ create table if not exists kas (
   ket text not null default '',
   jenis text not null check (jenis in ('masuk','keluar')),
   nominal numeric(15,2) not null default 0,
-  file_url text default '',
+  -- Bukti transaksi hanya boleh link Google Drive/Workspace, bukan file upload (hemat Supabase Storage)
+  file_url text default '' check (file_url = '' or file_url ~ '^https://(drive|docs|sheets|slides|forms)\.google\.com/'),
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -448,9 +449,5 @@ create index if not exists idx_leads_stage on leads(stage);
 create index if not exists idx_forecast_divisi on forecast(divisi);
 create index if not exists idx_mitigasi_status on mitigasi(status);
 
--- ============================================================
--- STORAGE BUCKETS (for uploaded receipts / documents)
--- ============================================================
-insert into storage.buckets (id, name, public)
-values ('documents', 'documents', true)
-on conflict (id) do nothing;
+-- Note: no Supabase Storage bucket. Bukti/lampiran hanya boleh link Google Drive/Workspace
+-- (lihat check constraint pada kas.file_url di atas) supaya hemat storage.
