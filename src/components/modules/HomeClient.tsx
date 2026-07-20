@@ -1,42 +1,48 @@
 'use client'
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 import {
-  Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement,
+  Chart as ChartJS, CategoryScale, LinearScale, RadialLinearScale, PointElement, LineElement,
   BarElement, ArcElement, Tooltip, Legend, Filler,
 } from 'chart.js'
-import { Line, Bar, Doughnut } from 'react-chartjs-2'
+import { Line, Bar, Doughnut, Radar, Pie } from 'react-chartjs-2'
 import { supabase } from '@/lib/supabase/client'
 import StatCard from '@/components/ui/StatCard'
 import Card from '@/components/ui/Card'
 import { formatRp, BULAN, tempLead } from '@/lib/utils'
 import {
   Flame, CheckCircle2, AlertTriangle, ShieldAlert, Target, BarChart3,
-  TrendingUp, TrendingDown, HeartPulse, Gem, Clock, CalendarDays, ChevronLeft, ChevronRight,
+  TrendingUp, TrendingDown, HeartPulse, Gem, CalendarDays, ChevronLeft, ChevronRight,
+  Sunrise, Sun, Sunset, Moon, PieChart as PieIcon, Radar as RadarIcon,
 } from 'lucide-react'
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Tooltip, Legend, Filler)
+ChartJS.register(CategoryScale, LinearScale, RadialLinearScale, PointElement, LineElement, BarElement, ArcElement, Tooltip, Legend, Filler)
 
 const MONTH_KEYS = ['jan', 'feb', 'mar', 'apr', 'mei', 'jun', 'jul', 'agu', 'sep', 'okt', 'nov', 'des'] as const
 const CHART_COLORS = { accent: '#4f46e5', success: '#059669', danger: '#dc2626', warning: '#d97706', info: '#0284c7', muted: '#94a3b8' }
-const DOUGHNUT_PALETTE = ['#4f46e5', '#0284c7', '#059669', '#d97706', '#dc2626', '#94a3b8']
+const PALETTE = ['#4f46e5', '#0284c7', '#059669', '#d97706', '#dc2626', '#94a3b8', '#a855f7']
+const idDate = (d: Date) => d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+const dateStr = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
-function monthKey(d: Date) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` }
-function parseMonthKey(mk: string) {
-  const [y, m] = mk.split('-').map(Number)
-  return { year: y, monthIdx: m - 1 }
+function monthsInRange(start: Date, end: Date): { year: number; monthIdx: number }[] {
+  const out: { year: number; monthIdx: number }[] = []
+  let d = new Date(start.getFullYear(), start.getMonth(), 1)
+  const last = new Date(end.getFullYear(), end.getMonth(), 1)
+  while (d <= last) {
+    out.push({ year: d.getFullYear(), monthIdx: d.getMonth() })
+    d = new Date(d.getFullYear(), d.getMonth() + 1, 1)
+  }
+  return out
 }
-function lastNMonths(n: number): string[] {
-  const now = new Date()
-  const arr: string[] = []
-  for (let i = n - 1; i >= 0; i--) arr.push(monthKey(new Date(now.getFullYear(), now.getMonth() - i, 1)))
-  return arr
-}
-function monthLabel(mk: string) {
-  const { year, monthIdx } = parseMonthKey(mk)
-  return `${BULAN[monthIdx]} ${year}`
+function calendarMonthsEndingAt(end: Date, n: number): { year: number; monthIdx: number; key: string; label: string }[] {
+  const out = []
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(end.getFullYear(), end.getMonth() - i, 1)
+    out.push({ year: d.getFullYear(), monthIdx: d.getMonth(), key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, label: BULAN[d.getMonth()].slice(0, 3) })
+  }
+  return out
 }
 
-// ── Widget kecil: jam & kalender ──────────────────────────────────────────
+// ── Widget: jam analog + digital ────────────────────────────────────────────
 function LiveClock() {
   const [now, setNow] = useState<Date | null>(null)
   useEffect(() => {
@@ -44,17 +50,54 @@ function LiveClock() {
     const t = setInterval(() => setNow(new Date()), 1000)
     return () => clearInterval(t)
   }, [])
+
+  const h = now?.getHours() ?? 0
+  const m = now?.getMinutes() ?? 0
+  const s = now?.getSeconds() ?? 0
+  const hourDeg = (h % 12) * 30 + m * 0.5
+  const minDeg = m * 6 + s * 0.1
+  const secDeg = s * 6
+  const pt = (deg: number, r: number) => ({ x: 50 + r * Math.sin(deg * Math.PI / 180), y: 50 - r * Math.cos(deg * Math.PI / 180) })
+  const hourPt = pt(hourDeg, 22), minPt = pt(minDeg, 32), secPt = pt(secDeg, 36)
+
+  const GreetIcon = h < 11 ? Sunrise : h < 15 ? Sun : h < 18 ? Sunset : Moon
+  const greeting = h < 11 ? 'Selamat Pagi' : h < 15 ? 'Selamat Siang' : h < 18 ? 'Selamat Sore' : 'Selamat Malam'
+
   return (
     <Card>
-      <div className="flex items-center gap-2 text-muted mb-2">
-        <Clock size={14} />
-        <span className="text-[0.7rem] uppercase tracking-wide font-semibold">Waktu Sekarang</span>
-      </div>
-      <div className="text-2xl font-extrabold text-primary tabular-nums">
-        {now ? now.toLocaleTimeString('id-ID') : '--:--:--'}
-      </div>
-      <div className="text-[0.78rem] text-muted mt-1">
-        {now ? now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : ''}
+      <div className="flex items-center gap-4">
+        <div className="relative w-24 h-24 shrink-0">
+          <svg viewBox="0 0 100 100" className="w-full h-full">
+            <circle cx="50" cy="50" r="47" fill="url(#clockGrad)" />
+            <circle cx="50" cy="50" r="47" fill="none" stroke="#e2e8f0" strokeWidth="1.5" />
+            <defs>
+              <linearGradient id="clockGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#f8fafc" />
+                <stop offset="100%" stopColor="#eef2ff" />
+              </linearGradient>
+            </defs>
+            {Array.from({ length: 12 }).map((_, i) => {
+              const a = i * 30
+              const o = pt(a, 40), inner = pt(a, i % 3 === 0 ? 35 : 37)
+              return <line key={i} x1={inner.x} y1={inner.y} x2={o.x} y2={o.y} stroke="#94a3b8" strokeWidth={i % 3 === 0 ? 2 : 1} strokeLinecap="round" />
+            })}
+            <line x1="50" y1="50" x2={hourPt.x} y2={hourPt.y} stroke="#0f172a" strokeWidth="4" strokeLinecap="round" />
+            <line x1="50" y1="50" x2={minPt.x} y2={minPt.y} stroke="#0f172a" strokeWidth="3" strokeLinecap="round" />
+            <line x1="50" y1="50" x2={secPt.x} y2={secPt.y} stroke="#4f46e5" strokeWidth="1.5" strokeLinecap="round" />
+            <circle cx="50" cy="50" r="3.5" fill="#4f46e5" />
+          </svg>
+        </div>
+        <div>
+          <div className="flex items-center gap-1.5 text-[0.7rem] text-accent font-semibold mb-1">
+            <GreetIcon size={13} /> {now ? greeting : ''}
+          </div>
+          <div className="text-[1.7rem] font-extrabold text-primary tabular-nums leading-none">
+            {now ? now.toLocaleTimeString('id-ID') : '--:--:--'}
+          </div>
+          <div className="text-[0.75rem] text-muted mt-1.5">
+            {now ? now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : ''}
+          </div>
+        </div>
       </div>
     </Card>
   )
@@ -105,9 +148,39 @@ function MiniCalendar() {
   )
 }
 
+type FilterMode = 'year' | 'month' | 'custom'
+
 export default function HomeClient() {
-  const monthOptions = useMemo(() => lastNMonths(12), [])
+  const today = new Date()
+  const years = useMemo(() => [today.getFullYear() - 1, today.getFullYear()], [])
+  const monthOptions = useMemo(() => {
+    const arr: string[] = []
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1)
+      arr.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+    }
+    return arr
+  }, [])
+
+  const [filterMode, setFilterMode] = useState<FilterMode>('month')
+  const [selectedYear, setSelectedYear] = useState(today.getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(monthOptions[monthOptions.length - 1])
+  const [customStart, setCustomStart] = useState(dateStr(new Date(today.getFullYear(), today.getMonth(), 1)))
+  const [customEnd, setCustomEnd] = useState(dateStr(today))
+
+  const range = useMemo(() => {
+    if (filterMode === 'year') {
+      return { start: new Date(selectedYear, 0, 1), end: new Date(selectedYear, 11, 31), label: `Tahun ${selectedYear}` }
+    }
+    if (filterMode === 'custom') {
+      const start = customStart ? new Date(customStart) : today
+      const end = customEnd ? new Date(customEnd) : today
+      return { start, end, label: `${idDate(start)} – ${idDate(end)}` }
+    }
+    const [y, m] = selectedMonth.split('-').map(Number)
+    return { start: new Date(y, m - 1, 1), end: new Date(y, m, 0), label: `${BULAN[m - 1]} ${y}` }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterMode, selectedYear, selectedMonth, customStart, customEnd])
 
   const [stats, setStats] = useState({
     klienAktif: 0, revenueBulanIni: 0, posisiTerpenuhi: '0%',
@@ -118,17 +191,16 @@ export default function HomeClient() {
   const [targetPerDivisi, setTargetPerDivisi] = useState<{ divisi: string; pct: number; target: number; real: number }[]>([])
   const [trendData, setTrendData] = useState<{ labels: string[]; revenue: number[]; expense: number[] }>({ labels: [], revenue: [], expense: [] })
   const [leadChannelData, setLeadChannelData] = useState<{ labels: string[]; values: number[] }>({ labels: [], values: [] })
+  const [batchStatusData, setBatchStatusData] = useState<{ labels: string[]; values: number[] }>({ labels: [], values: [] })
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => { loadAll(selectedMonth) }, [selectedMonth])
+  useEffect(() => { loadAll(range.start, range.end) }, [range.start.getTime(), range.end.getTime()])
 
-  async function loadAll(mk: string) {
+  async function loadAll(rangeStart: Date, rangeEndRaw: Date) {
     setLoading(true)
-    const { year, monthIdx } = parseMonthKey(mk)
-    const monthStart = new Date(year, monthIdx, 1)
-    const monthEndRaw = new Date(year, monthIdx + 1, 0)
-    const today = new Date()
-    const reference = monthEndRaw > today ? today : monthEndRaw
+    const now = new Date()
+    const rangeEnd = rangeEndRaw > now ? now : rangeEndRaw
+    const reference = rangeEnd
 
     const [
       { data: clients },
@@ -156,26 +228,34 @@ export default function HomeClient() {
       (supabase.from('settings') as any).select('*').eq('key', 'saldo_awal').single(),
     ])
 
-    // Klien Aktif — tidak ada field tanggal di b2b_clients, jadi selalu status "saat ini" (tidak bisa difilter per bulan)
+    const rangeStartStr = dateStr(rangeStart)
+    const rangeEndStr = dateStr(rangeEndRaw)
+
+    // Klien Aktif — tidak ada field tanggal di b2b_clients, jadi selalu status "saat ini"
     const klienAktif = (clients || []).filter((c: any) => c.status === 'Aktif').length
 
-    // Posisi Terpenuhi — posisi yang sudah mulai per akhir bulan terpilih; terpenuhi = selesai pada/sebelum bulan itu
+    // Posisi Terpenuhi — posisi yang sudah mulai per akhir rentang; terpenuhi = selesai pada/sebelum itu
     const rekAktif = (rekrutmen || []).filter((r: any) => r.mulai && new Date(r.mulai) <= reference)
     const rekSelesai = rekAktif.filter((r: any) => r.tahap === 'Selesai' && r.selesai && new Date(r.selesai) <= reference)
     const posisiTerpenuhi = rekAktif.length ? Math.round(rekSelesai.length / rekAktif.length * 100) + '%' : '0%'
 
-    // Course Pipeline — batch berstatus Pipeline/Akan Datang yang dijadwalkan pada bulan terpilih
+    // Course Pipeline — batch berstatus Pipeline/Akan Datang yang dijadwalkan dalam rentang
     const allBatches = [...(batches_off || []), ...(batches_on || [])]
     const coursePipeline = allBatches.filter((b: any) =>
-      ['Pipeline', 'Akan Datang'].includes(b.status) && b.tanggal && new Date(b.tanggal) >= monthStart && new Date(b.tanggal) <= monthEndRaw
+      ['Pipeline', 'Akan Datang'].includes(b.status) && b.tanggal && b.tanggal >= rangeStartStr && b.tanggal <= rangeEndStr
     ).length
 
-    // Revenue bulan terpilih
+    // Distribusi status batch (untuk Pie chart)
+    const statusMap: Record<string, number> = {}
+    allBatches.forEach((b: any) => { statusMap[b.status] = (statusMap[b.status] || 0) + 1 })
+    setBatchStatusData({ labels: Object.keys(statusMap), values: Object.values(statusMap) })
+
+    // Revenue dalam rentang
     const revBulanIni = (cashflow || [])
-      .filter((c: any) => c.tanggal >= monthKeyDate(monthStart) && c.tanggal <= monthKeyDate(monthEndRaw) && c.tipe === 'Revenue')
+      .filter((c: any) => c.tanggal >= rangeStartStr && c.tanggal <= rangeEndStr && c.tipe === 'Revenue')
       .reduce((s: number, c: any) => s + Number(c.nominal), 0)
 
-    // Hot leads overdue — dievaluasi relatif ke akhir bulan terpilih (atau hari ini kalau bulan berjalan)
+    // Hot leads overdue — dievaluasi relatif ke akhir rentang (atau hari ini kalau melewati)
     let hotOver = 0
     ;(leads || []).forEach((l: any) => {
       if (!l.last_interaction || new Date(l.last_interaction) > reference) return
@@ -184,14 +264,17 @@ export default function HomeClient() {
       if (tempLead(score) === 'Hot' && days > 7 && l.stage !== 'Deal' && l.stage !== 'Lost') hotOver++
     })
 
-    // Target/Realisasi per divisi — untuk bulan terpilih spesifik
+    // Target/Realisasi per divisi — dijumlahkan atas semua bulan kalender yang masuk rentang
+    const months = monthsInRange(rangeStart, rangeEndRaw)
     const map: Record<string, { target: number; real: number }> = {}
-    ;(forecast || []).filter((r: any) => r.tahun === year).forEach((r: any) => {
-      if (!map[r.divisi]) map[r.divisi] = { target: 0, real: 0 }
-      map[r.divisi].target += Number(r[MONTH_KEYS[monthIdx]] || 0)
+    months.forEach(({ year, monthIdx }) => {
+      ;(forecast || []).filter((r: any) => r.tahun === year).forEach((r: any) => {
+        if (!map[r.divisi]) map[r.divisi] = { target: 0, real: 0 }
+        map[r.divisi].target += Number(r[MONTH_KEYS[monthIdx]] || 0)
+      })
     })
     ;(cashflow || [])
-      .filter((c: any) => c.tipe === 'Revenue' && c.tanggal >= monthKeyDate(monthStart) && c.tanggal <= monthKeyDate(monthEndRaw))
+      .filter((c: any) => c.tipe === 'Revenue' && c.tanggal >= rangeStartStr && c.tanggal <= rangeEndStr)
       .forEach((c: any) => {
         const d = c.divisi || ''
         if (!map[d]) map[d] = { target: 0, real: 0 }
@@ -203,13 +286,13 @@ export default function HomeClient() {
     const totalTarget = perDivisi.reduce((s, v) => s + v.target, 0)
     const totalReal = perDivisi.reduce((s, v) => s + v.real, 0)
 
-    // Checklist overdue — relatif ke akhir bulan terpilih
+    // Checklist overdue — relatif ke akhir rentang
     const chkOverdue = (checklist || []).filter((c: any) => {
       if (c.status === 'Selesai Acc' || !c.target_date) return false
-      return new Date(c.target_date) <= reference && new Date(c.target_date) < today
+      return new Date(c.target_date) <= reference && new Date(c.target_date) < now
     }).length
 
-    // Burn / Runway — rata-rata 3 bulan kalender berakhir di bulan terpilih
+    // Burn / Runway — rata-rata 3 bulan kalender berakhir di bulan akhir rentang
     const byMonth: Record<string, { rev: number; exp: number }> = {}
     ;(cashflow || []).forEach((c: any) => {
       const k = c.tanggal.slice(0, 7)
@@ -217,14 +300,14 @@ export default function HomeClient() {
       if (c.tipe === 'Revenue') byMonth[k].rev += Number(c.nominal)
       else byMonth[k].exp += Number(c.nominal)
     })
-    const trailing3 = [0, 1, 2].map(i => monthKey(new Date(year, monthIdx - i, 1)))
-    const avgNet = trailing3.reduce((s, k) => s + ((byMonth[k]?.exp || 0) - (byMonth[k]?.rev || 0)), 0) / 3
+    const trailing3 = calendarMonthsEndingAt(rangeEndRaw, 3)
+    const avgNet = trailing3.reduce((s, m) => s + ((byMonth[m.key]?.exp || 0) - (byMonth[m.key]?.rev || 0)), 0) / 3
 
-    // Kas per akhir bulan terpilih (kumulatif s.d. bulan itu)
+    // Kas per akhir rentang (kumulatif s.d. rentang itu)
     const saldoAwal = settings ? Number(settings.value) || 0 : 0
-    const cashflowUpToMonth = (cashflow || []).filter((c: any) => c.tanggal <= monthKeyDate(monthEndRaw))
-    const totalRev = cashflowUpToMonth.filter((c: any) => c.tipe === 'Revenue').reduce((s: number, c: any) => s + Number(c.nominal), 0)
-    const totalExp = cashflowUpToMonth.filter((c: any) => c.tipe !== 'Revenue').reduce((s: number, c: any) => s + Number(c.nominal), 0)
+    const cashflowUpToRange = (cashflow || []).filter((c: any) => c.tanggal <= rangeEndStr)
+    const totalRev = cashflowUpToRange.filter((c: any) => c.tipe === 'Revenue').reduce((s: number, c: any) => s + Number(c.nominal), 0)
+    const totalExp = cashflowUpToRange.filter((c: any) => c.tipe !== 'Revenue').reduce((s: number, c: any) => s + Number(c.nominal), 0)
     const kasSaatIni = saldoAwal + totalRev - totalExp
 
     // Action Center
@@ -232,25 +315,25 @@ export default function HomeClient() {
     if (hotOver > 0) items.push({ lvl: 2, icon: <Flame size={16} />, txt: `${hotOver} Hot lead diam > 7 hari`, act: 'Follow-up hari ini', href: '/marketing' })
     if (chkOverdue > 0) items.push({ lvl: 2, icon: <CheckCircle2 size={16} />, txt: `${chkOverdue} milestone B2B overdue`, act: 'Tinjau checklist B2B', href: '/b2b-internal' })
     ;(kritis || []).forEach((r: any) => {
-      if (r.deadline && new Date(r.deadline) <= reference && new Date(r.deadline) < today)
+      if (r.deadline && new Date(r.deadline) <= reference && new Date(r.deadline) < now)
         items.push({ lvl: 2, icon: <AlertTriangle size={16} />, txt: `Posisi kritis "${r.posisi}" melewati deadline`, act: 'Headhunter → Posisi Kritis', href: '/headhunter' })
     })
     ;(mitigasi || []).filter((r: any) => r.status === 'Terbuka').slice(0, 3).forEach((r: any) => {
       items.push({ lvl: 1, icon: <ShieldAlert size={16} />, txt: `Resiko "${r.risiko}" belum ditangani`, act: 'Mitigasi Resiko', href: '/mitigasi' })
     })
 
-    // Tren Revenue vs Pengeluaran — 6 bulan kalender berakhir di bulan terpilih
-    const trendMonths = lastNMonthsEndingAt(mk, 6)
+    // Tren Revenue vs Pengeluaran — 6 bulan kalender berakhir di bulan akhir rentang
+    const trendMonths = calendarMonthsEndingAt(rangeEndRaw, 6)
     setTrendData({
-      labels: trendMonths.map(m => monthLabel(m).split(' ')[0].slice(0, 3)),
-      revenue: trendMonths.map(m => byMonth[m]?.rev || 0),
-      expense: trendMonths.map(m => byMonth[m]?.exp || 0),
+      labels: trendMonths.map(m => m.label),
+      revenue: trendMonths.map(m => byMonth[m.key]?.rev || 0),
+      expense: trendMonths.map(m => byMonth[m.key]?.exp || 0),
     })
 
-    // Distribusi Leads per Channel — leads yang sudah ada s.d. bulan terpilih
-    const leadsUpToMonth = (leads || []).filter((l: any) => !l.last_interaction || new Date(l.last_interaction) <= reference)
+    // Distribusi Leads per Channel — leads yang sudah ada s.d. akhir rentang
+    const leadsUpToRange = (leads || []).filter((l: any) => !l.last_interaction || new Date(l.last_interaction) <= reference)
     const channelMap: Record<string, number> = {}
-    leadsUpToMonth.forEach((l: any) => { channelMap[l.channel] = (channelMap[l.channel] || 0) + 1 })
+    leadsUpToRange.forEach((l: any) => { channelMap[l.channel] = (channelMap[l.channel] || 0) + 1 })
     setLeadChannelData({ labels: Object.keys(channelMap), values: Object.values(channelMap) })
 
     setStats({
@@ -274,22 +357,60 @@ export default function HomeClient() {
       { label: 'Realisasi', data: targetPerDivisi.map(d => d.real), backgroundColor: CHART_COLORS.accent, borderRadius: 4 },
     ],
   }
+  const radarData = {
+    labels: targetPerDivisi.map(d => d.divisi),
+    datasets: [{
+      label: '% Capaian Target',
+      data: targetPerDivisi.map(d => d.pct),
+      backgroundColor: CHART_COLORS.accent + '33',
+      borderColor: CHART_COLORS.accent,
+      pointBackgroundColor: CHART_COLORS.accent,
+    }],
+  }
 
   return (
     <div>
-      {/* Filter bulan */}
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+      {/* Filter tahun / bulan / kustom */}
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <div>
-          <div className="text-base font-bold text-primary">Ringkasan {monthLabel(selectedMonth)}</div>
-          <div className="text-[0.78rem] text-muted">Semua nilai di halaman ini mengikuti bulan yang dipilih</div>
+          <div className="text-base font-bold text-primary">Ringkasan {range.label}</div>
+          <div className="text-[0.78rem] text-muted">Semua nilai di halaman ini mengikuti rentang yang dipilih</div>
         </div>
-        <select
-          value={selectedMonth}
-          onChange={e => setSelectedMonth(e.target.value)}
-          className="px-3.5 py-2 border-[1.5px] border-border rounded-lg text-[0.85rem] font-semibold text-primary outline-none focus:border-accent bg-white"
-        >
-          {monthOptions.map(m => <option key={m} value={m}>{monthLabel(m)}</option>)}
-        </select>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex bg-slate-100 p-1 rounded-lg">
+            {([['year', 'Tahun'], ['month', 'Bulan'], ['custom', 'Kustom']] as const).map(([mode, label]) => (
+              <button
+                key={mode}
+                onClick={() => setFilterMode(mode)}
+                className={`px-3 py-1.5 rounded-md text-[0.78rem] font-semibold transition-colors ${
+                  filterMode === mode ? 'bg-white text-primary shadow-sm' : 'text-muted hover:text-primary'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {filterMode === 'year' && (
+            <select value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} className="px-3 py-2 border-[1.5px] border-border rounded-lg text-[0.85rem] font-semibold text-primary outline-none focus:border-accent bg-white">
+              {years.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+          )}
+          {filterMode === 'month' && (
+            <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} className="px-3 py-2 border-[1.5px] border-border rounded-lg text-[0.85rem] font-semibold text-primary outline-none focus:border-accent bg-white">
+              {monthOptions.map(m => {
+                const [y, mm] = m.split('-').map(Number)
+                return <option key={m} value={m}>{BULAN[mm - 1]} {y}</option>
+              })}
+            </select>
+          )}
+          {filterMode === 'custom' && (
+            <div className="flex items-center gap-1.5">
+              <input type="date" value={customStart} onChange={e => setCustomStart(e.target.value)} className="px-2.5 py-2 border-[1.5px] border-border rounded-lg text-[0.8rem] outline-none focus:border-accent bg-white" />
+              <span className="text-muted text-[0.75rem]">s/d</span>
+              <input type="date" value={customEnd} onChange={e => setCustomEnd(e.target.value)} className="px-2.5 py-2 border-[1.5px] border-border rounded-lg text-[0.8rem] outline-none focus:border-accent bg-white" />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Widget: jam & kalender */}
@@ -344,7 +465,7 @@ export default function HomeClient() {
       {/* KPI Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-[18px]">
         <StatCard label="Total Klien Aktif" value={stats.klienAktif} sub="B2B Internal + Eksternal" variant="accent" />
-        <StatCard label="Revenue Bulan Ini" value={formatRp(stats.revenueBulanIni)} sub="Dari Finance" variant="blue" />
+        <StatCard label="Revenue" value={formatRp(stats.revenueBulanIni)} sub="Dari Finance" variant="blue" />
         <StatCard label="Posisi Terpenuhi" value={stats.posisiTerpenuhi} sub="Dari Headhunter" variant="gold" />
         <StatCard label="Course Pipeline" value={stats.coursePipeline} sub="Dari Courses" accentColor="var(--success)" />
       </div>
@@ -375,10 +496,29 @@ export default function HomeClient() {
             <div className="text-center py-10 text-muted text-[0.82rem]">Belum ada data leads.</div>
           ) : (
             <Doughnut
-              data={{
-                labels: leadChannelData.labels,
-                datasets: [{ data: leadChannelData.values, backgroundColor: DOUGHNUT_PALETTE, borderWidth: 0 }],
-              }}
+              data={{ labels: leadChannelData.labels, datasets: [{ data: leadChannelData.values, backgroundColor: PALETTE, borderWidth: 0 }] }}
+              options={{ responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } } }}
+              height={220}
+            />
+          )}
+        </Card>
+        <Card icon={<RadarIcon size={16} />} title="Radar % Capaian Target per Divisi">
+          {targetPerDivisi.length === 0 ? (
+            <div className="text-center py-10 text-muted text-[0.82rem]">Belum ada data forecasting.</div>
+          ) : (
+            <Radar
+              data={radarData}
+              options={{ responsive: true, plugins: { legend: { display: false } }, scales: { r: { min: 0, suggestedMax: 100, ticks: { stepSize: 25, font: { size: 9 } }, pointLabels: { font: { size: 11 } } } } }}
+              height={220}
+            />
+          )}
+        </Card>
+        <Card icon={<PieIcon size={16} />} title="Distribusi Status Batch Training">
+          {batchStatusData.labels.length === 0 ? (
+            <div className="text-center py-10 text-muted text-[0.82rem]">Belum ada data batch.</div>
+          ) : (
+            <Pie
+              data={{ labels: batchStatusData.labels, datasets: [{ data: batchStatusData.values, backgroundColor: PALETTE, borderWidth: 0 }] }}
               options={{ responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } } }}
               height={220}
             />
@@ -387,10 +527,10 @@ export default function HomeClient() {
       </div>
 
       {/* Target & Capaian */}
-      <Card icon={<Target size={16} />} title={`Target & Capaian — ${monthLabel(selectedMonth)}`}>
+      <Card icon={<Target size={16} />} title={`Target & Capaian — ${range.label}`}>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-          <StatCard label="Target Revenue" value={formatRp(stats.targetRevenue)} sub="Forecast bulan ini" />
-          <StatCard label="Capaian Revenue" value={formatRp(stats.realisasiRevenue)} sub="Realisasi bulan ini" />
+          <StatCard label="Target Revenue" value={formatRp(stats.targetRevenue)} sub="Forecast" />
+          <StatCard label="Capaian Revenue" value={formatRp(stats.realisasiRevenue)} sub="Realisasi" />
           <StatCard
             label="% Capaian Target"
             value={stats.targetRevenue ? Math.round(stats.realisasiRevenue / stats.targetRevenue * 100) + '%' : '0%'}
@@ -401,11 +541,11 @@ export default function HomeClient() {
 
         {targetPerDivisi.length === 0 ? (
           <div className="text-center py-3.5 text-muted text-[0.82rem]">
-            Belum ada data forecasting untuk bulan ini. Isi di tab Forecasting.
+            Belum ada data forecasting untuk rentang ini. Isi di tab Forecasting.
           </div>
         ) : (
           <>
-            <div className="mb-5" style={{ maxWidth: '100%' }}>
+            <div className="mb-5">
               <Bar
                 data={barData}
                 options={{ responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } }, scales: { y: { ticks: { callback: v => formatRp(Number(v)).replace('Rp ', '') } } } }}
@@ -435,22 +575,13 @@ export default function HomeClient() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard label="Checklist Overdue" value={stats.checklistOverdue} sub="Milestone B2B lewat target" accentColor="var(--accent-hover)" icon={<CheckCircle2 size={18} />} />
         <StatCard label="Total Klien" value={stats.klienAktif} sub="Aktif saat ini" icon={<BarChart3 size={18} />} />
-        <StatCard label="Courses" value={stats.coursePipeline} sub="Pipeline & Akan Datang bulan ini" icon={<TrendingUp size={18} />} />
+        <StatCard label="Courses" value={stats.coursePipeline} sub="Pipeline & Akan Datang" icon={<TrendingUp size={18} />} />
       </div>
     </div>
   )
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-function monthKeyDate(d: Date) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-function lastNMonthsEndingAt(mk: string, n: number): string[] {
-  const { year, monthIdx } = parseMonthKey(mk)
-  const arr: string[] = []
-  for (let i = n - 1; i >= 0; i--) arr.push(monthKey(new Date(year, monthIdx - i, 1)))
-  return arr
-}
 function leadScoreAt(l: { channel: string; stage: string }, daysSinceInteraction: number | null): number {
   let s = 0
   if (l.channel === 'Referral' || l.channel === 'Komunitas') s += 30
