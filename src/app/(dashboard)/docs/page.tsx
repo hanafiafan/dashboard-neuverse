@@ -3,7 +3,7 @@ import { useState } from 'react'
 import {
   BookMarked, LayoutDashboard, ListChecks, Target, Building2, Globe2, BookOpen, Laptop,
   NotebookPen, BarChart3, TrendingUp, ShieldAlert, Megaphone, LayoutGrid, Star, Workflow,
-  FolderTree, Lock, Link2, Calendar, Wallet, Database, Calculator, ClipboardList,
+  FolderTree, Lock, Link2, Calendar, Wallet, Database, Calculator, ClipboardList, Home,
   type LucideIcon,
 } from 'lucide-react'
 import Card from '@/components/ui/Card'
@@ -11,6 +11,7 @@ import Tag from '@/components/ui/Tag'
 import { ARSITEKTUR, KONVENSI, MODULES } from './content'
 
 const MODULE_ICONS: Record<string, LucideIcon> = {
+  dashboard: Home,
   headhunter: Target,
   'b2b-internal': Building2,
   'b2b-external': Globe2,

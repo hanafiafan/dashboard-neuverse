@@ -4,14 +4,14 @@ import {
   Chart as ChartJS, CategoryScale, LinearScale, RadialLinearScale, PointElement, LineElement,
   BarElement, ArcElement, Tooltip, Legend, Filler,
 } from 'chart.js'
-import { Line, Bar, Doughnut, Radar, Pie } from 'react-chartjs-2'
+import { Line, Bar, PolarArea, Radar } from 'react-chartjs-2'
 import { supabase } from '@/lib/supabase/client'
 import StatCard from '@/components/ui/StatCard'
 import Card from '@/components/ui/Card'
 import { formatRp, BULAN, tempLead } from '@/lib/utils'
 import {
   Flame, CheckCircle2, AlertTriangle, ShieldAlert, Target, BarChart3,
-  TrendingUp, TrendingDown, HeartPulse, Gem, PieChart as PieIcon, Radar as RadarIcon,
+  TrendingUp, TrendingDown, HeartPulse, Gem, Compass, BarChart2, Radar as RadarIcon,
 } from 'lucide-react'
 
 ChartJS.register(CategoryScale, LinearScale, RadialLinearScale, PointElement, LineElement, BarElement, ArcElement, Tooltip, Legend, Filler)
@@ -378,12 +378,12 @@ export default function HomeClient() {
             height={220}
           />
         </Card>
-        <Card icon={<Target size={16} />} title="Distribusi Leads per Channel">
+        <Card icon={<Compass size={16} />} title="Distribusi Leads per Channel">
           {leadChannelData.labels.length === 0 ? (
             <div className="text-center py-10 text-muted text-[0.82rem]">Belum ada data leads.</div>
           ) : (
-            <Doughnut
-              data={{ labels: leadChannelData.labels, datasets: [{ data: leadChannelData.values, backgroundColor: PALETTE, borderWidth: 0 }] }}
+            <PolarArea
+              data={{ labels: leadChannelData.labels, datasets: [{ data: leadChannelData.values, backgroundColor: PALETTE.map(c => c + 'cc'), borderWidth: 0 }] }}
               options={{ responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } } }}
               height={220}
             />
@@ -400,13 +400,13 @@ export default function HomeClient() {
             />
           )}
         </Card>
-        <Card icon={<PieIcon size={16} />} title="Distribusi Status Batch Training">
+        <Card icon={<BarChart2 size={16} />} title="Distribusi Status Batch Training">
           {batchStatusData.labels.length === 0 ? (
             <div className="text-center py-10 text-muted text-[0.82rem]">Belum ada data batch.</div>
           ) : (
-            <Pie
-              data={{ labels: batchStatusData.labels, datasets: [{ data: batchStatusData.values, backgroundColor: PALETTE, borderWidth: 0 }] }}
-              options={{ responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } } }}
+            <Bar
+              data={{ labels: batchStatusData.labels, datasets: [{ label: 'Jumlah Batch', data: batchStatusData.values, backgroundColor: PALETTE, borderRadius: 4 }] }}
+              options={{ indexAxis: 'y', responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { stepSize: 1 } } } }}
               height={220}
             />
           )}

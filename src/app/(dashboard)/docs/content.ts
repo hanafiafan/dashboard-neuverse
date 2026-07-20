@@ -32,7 +32,7 @@ export const ARSITEKTUR = {
     {
       judul: 'Keamanan & akses',
       icon: 'Lock',
-      isi: 'Dashboard ini TIDAK memiliki sistem login — ini keputusan yang disengaja untuk tool internal tim. Setiap tabel memiliki Row Level Security (RLS) aktif dengan policy "allow_all" (semua orang yang membuka link dashboard bisa baca & tulis data). Jangan bagikan link dashboard ke luar tim.',
+      isi: 'Dashboard ini dilindungi satu gerbang login bersama (email & password satu akun tim, bukan akun per-orang) — dicek di server lewat Next.js Middleware, tersimpan sebagai cookie httpOnly, kredensialnya tidak pernah ikut ke kode yang dikirim ke browser. Ini tetap BUKAN keamanan tingkat enterprise: begitu berhasil login, Row Level Security di Supabase masih berpolicy "allow_all" (siapa pun yang tahu URL Supabase & anon key bisa akses API langsung tanpa lewat login). Jangan bagikan kredensial login ke luar tim.',
     },
     {
       judul: 'Dokumen & lampiran',
@@ -66,6 +66,23 @@ export const KONVENSI = [
 ]
 
 export const MODULES: DocModule[] = [
+  {
+    id: 'dashboard',
+    label: 'Halaman Depan',
+    ringkasan: 'Ringkasan kondisi bisnis secara keseluruhan — KPI utama, Pusat Tindakan (Action Center), dan 5 visualisasi chart. Semuanya bisa difilter per Tahun, Bulan, atau rentang tanggal Kustom lewat kontrol di kanan atas halaman.',
+    tabel: ['b2b_clients', 'rekrutmen', 'batch_offline', 'batch_online', 'leads', 'forecast', 'cashflow', 'b2b_checklist', 'kritis', 'mitigasi', 'settings'],
+    langkah: [
+      'Pilih mode filter di kanan atas: Tahun (agregat 1 tahun penuh), Bulan (1 bulan spesifik), atau Kustom (rentang tanggal bebas dengan 2 date picker).',
+      'Semua KPI, Pusat Tindakan, dan chart di halaman ini otomatis mengikuti rentang yang dipilih — kecuali "Total Klien Aktif" yang selalu menunjukkan status saat ini, karena tabel Klien memang tidak punya field tanggal untuk difilter.',
+      'Klik baris apa pun di "Pusat Tindakan" untuk langsung menuju modul terkait yang perlu ditindaklanjuti (Marketing, B2B, Headhunter, atau Mitigasi Resiko).',
+    ],
+    rumus: [
+      'Model perhitungan: "kondisi per akhir rentang yang dipilih" — metrik akumulasi (Kas Saat Ini, Posisi Terpenuhi, Klien) memakai semua data sampai akhir rentang; metrik per-periode (Revenue, Net Burn, Target/Realisasi) memakai data di dalam rentang itu saja.',
+      'Runway = Kas Saat Ini (akumulasi s.d. akhir rentang) ÷ rata-rata Net Burn 3 bulan kalender terakhir yang berakhir di bulan akhir rentang.',
+      'Hot Leads Overdue, Checklist Overdue, dan Posisi Kritis overdue dievaluasi relatif ke akhir rentang (atau hari ini kalau rentang mencakup masa depan).',
+      'Chart: Line = tren Revenue vs Pengeluaran 6 bulan terakhir. Polar Area = distribusi Leads per Channel. Radar = % Capaian Target per Divisi. Bar horizontal = distribusi Status Batch Training. Bar vertikal = Target vs Realisasi Revenue per Divisi.',
+    ],
+  },
   {
     id: 'headhunter',
     label: 'Headhunter',
