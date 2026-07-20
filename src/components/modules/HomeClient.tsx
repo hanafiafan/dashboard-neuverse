@@ -11,8 +11,7 @@ import Card from '@/components/ui/Card'
 import { formatRp, BULAN, tempLead } from '@/lib/utils'
 import {
   Flame, CheckCircle2, AlertTriangle, ShieldAlert, Target, BarChart3,
-  TrendingUp, TrendingDown, HeartPulse, Gem, CalendarDays, ChevronLeft, ChevronRight,
-  Sunrise, Sun, Sunset, Moon, PieChart as PieIcon, Radar as RadarIcon,
+  TrendingUp, TrendingDown, HeartPulse, Gem, PieChart as PieIcon, Radar as RadarIcon,
 } from 'lucide-react'
 
 ChartJS.register(CategoryScale, LinearScale, RadialLinearScale, PointElement, LineElement, BarElement, ArcElement, Tooltip, Legend, Filler)
@@ -40,112 +39,6 @@ function calendarMonthsEndingAt(end: Date, n: number): { year: number; monthIdx:
     out.push({ year: d.getFullYear(), monthIdx: d.getMonth(), key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, label: BULAN[d.getMonth()].slice(0, 3) })
   }
   return out
-}
-
-// ── Widget: jam analog + digital ────────────────────────────────────────────
-function LiveClock() {
-  const [now, setNow] = useState<Date | null>(null)
-  useEffect(() => {
-    setNow(new Date())
-    const t = setInterval(() => setNow(new Date()), 1000)
-    return () => clearInterval(t)
-  }, [])
-
-  const h = now?.getHours() ?? 0
-  const m = now?.getMinutes() ?? 0
-  const s = now?.getSeconds() ?? 0
-  const hourDeg = (h % 12) * 30 + m * 0.5
-  const minDeg = m * 6 + s * 0.1
-  const secDeg = s * 6
-  const pt = (deg: number, r: number) => ({ x: 50 + r * Math.sin(deg * Math.PI / 180), y: 50 - r * Math.cos(deg * Math.PI / 180) })
-  const hourPt = pt(hourDeg, 22), minPt = pt(minDeg, 32), secPt = pt(secDeg, 36)
-
-  const GreetIcon = h < 11 ? Sunrise : h < 15 ? Sun : h < 18 ? Sunset : Moon
-  const greeting = h < 11 ? 'Selamat Pagi' : h < 15 ? 'Selamat Siang' : h < 18 ? 'Selamat Sore' : 'Selamat Malam'
-
-  return (
-    <Card>
-      <div className="flex items-center gap-4">
-        <div className="relative w-24 h-24 shrink-0">
-          <svg viewBox="0 0 100 100" className="w-full h-full">
-            <circle cx="50" cy="50" r="47" fill="url(#clockGrad)" />
-            <circle cx="50" cy="50" r="47" fill="none" stroke="#e2e8f0" strokeWidth="1.5" />
-            <defs>
-              <linearGradient id="clockGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#f8fafc" />
-                <stop offset="100%" stopColor="#eef2ff" />
-              </linearGradient>
-            </defs>
-            {Array.from({ length: 12 }).map((_, i) => {
-              const a = i * 30
-              const o = pt(a, 40), inner = pt(a, i % 3 === 0 ? 35 : 37)
-              return <line key={i} x1={inner.x} y1={inner.y} x2={o.x} y2={o.y} stroke="#94a3b8" strokeWidth={i % 3 === 0 ? 2 : 1} strokeLinecap="round" />
-            })}
-            <line x1="50" y1="50" x2={hourPt.x} y2={hourPt.y} stroke="#0f172a" strokeWidth="4" strokeLinecap="round" />
-            <line x1="50" y1="50" x2={minPt.x} y2={minPt.y} stroke="#0f172a" strokeWidth="3" strokeLinecap="round" />
-            <line x1="50" y1="50" x2={secPt.x} y2={secPt.y} stroke="#4f46e5" strokeWidth="1.5" strokeLinecap="round" />
-            <circle cx="50" cy="50" r="3.5" fill="#4f46e5" />
-          </svg>
-        </div>
-        <div>
-          <div className="flex items-center gap-1.5 text-[0.7rem] text-accent font-semibold mb-1">
-            <GreetIcon size={13} /> {now ? greeting : ''}
-          </div>
-          <div className="text-[1.7rem] font-extrabold text-primary tabular-nums leading-none">
-            {now ? now.toLocaleTimeString('id-ID') : '--:--:--'}
-          </div>
-          <div className="text-[0.75rem] text-muted mt-1.5">
-            {now ? now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : ''}
-          </div>
-        </div>
-      </div>
-    </Card>
-  )
-}
-
-function MiniCalendar() {
-  const today = new Date()
-  const [view, setView] = useState({ year: today.getFullYear(), month: today.getMonth() })
-  const firstDay = new Date(view.year, view.month, 1).getDay()
-  const daysInMonth = new Date(view.year, view.month + 1, 0).getDate()
-  const cells: (number | null)[] = [...Array(firstDay).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)]
-  const isCurrentMonth = view.year === today.getFullYear() && view.month === today.getMonth()
-
-  return (
-    <Card>
-      <div className="flex items-center justify-between mb-2.5">
-        <div className="flex items-center gap-2 text-muted">
-          <CalendarDays size={14} />
-          <span className="text-[0.7rem] uppercase tracking-wide font-semibold">{BULAN[view.month]} {view.year}</span>
-        </div>
-        <div className="flex gap-1">
-          <button onClick={() => setView(v => v.month === 0 ? { year: v.year - 1, month: 11 } : { ...v, month: v.month - 1 })} className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-slate-100 text-muted">
-            <ChevronLeft size={13} />
-          </button>
-          <button onClick={() => setView(v => v.month === 11 ? { year: v.year + 1, month: 0 } : { ...v, month: v.month + 1 })} className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-slate-100 text-muted">
-            <ChevronRight size={13} />
-          </button>
-        </div>
-      </div>
-      <div className="grid grid-cols-7 gap-0.5 text-center">
-        {['M', 'S', 'S', 'R', 'K', 'J', 'S'].map((d, i) => (
-          <div key={i} className="text-[0.62rem] text-muted font-semibold py-1">{d}</div>
-        ))}
-        {cells.map((day, i) => (
-          <div
-            key={i}
-            className={`text-[0.72rem] py-1 rounded-md ${
-              day && isCurrentMonth && day === today.getDate()
-                ? 'bg-accent text-white font-bold'
-                : day ? 'text-text' : ''
-            }`}
-          >
-            {day || ''}
-          </div>
-        ))}
-      </div>
-    </Card>
-  )
 }
 
 type FilterMode = 'year' | 'month' | 'custom'
@@ -411,12 +304,6 @@ export default function HomeClient() {
             </div>
           )}
         </div>
-      </div>
-
-      {/* Widget: jam & kalender */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-[18px]">
-        <LiveClock />
-        <MiniCalendar />
       </div>
 
       {/* Promise Banner */}
