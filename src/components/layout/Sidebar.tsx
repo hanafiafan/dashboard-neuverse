@@ -63,7 +63,7 @@ export default function Sidebar() {
       )}
 
       <div
-        className={`flex flex-col fixed left-0 top-0 z-[100] min-h-screen bg-primary text-white transition-transform duration-200 md:translate-x-0 ${
+        className={`flex flex-col fixed left-0 top-0 z-[100] h-screen bg-primary text-white transition-transform duration-200 md:translate-x-0 ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
         style={{ width: 'var(--sidebar-w)' }}
