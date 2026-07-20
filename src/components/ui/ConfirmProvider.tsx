@@ -1,5 +1,6 @@
 'use client'
 import { createContext, useContext, useState, useRef, useCallback, useEffect } from 'react'
+import { AlertTriangle, HelpCircle } from 'lucide-react'
 
 interface ConfirmOptions {
   title?: string
@@ -68,110 +69,41 @@ export default function ConfirmProvider({ children }: { children: React.ReactNod
     <ConfirmContext.Provider value={{ confirm }}>
       {children}
       {isOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          background: 'rgba(0, 0, 0, 0.4)',
-          backdropFilter: 'blur(4px)',
-          zIndex: 9999999, // extremely high, above everything
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }} onClick={handleCancel}>
-          <div style={{
-            background: '#ffffff',
-            borderRadius: '16px',
-            width: '90%',
-            maxWidth: '400px',
-            boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
-            overflow: 'hidden',
-            animation: 'modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-            border: '1px solid var(--border)',
-          }} onClick={e => e.stopPropagation()}>
-            {/* Header */}
-            <div style={{
-              padding: '20px 24px 12px 24px',
-              borderBottom: '1px solid #f1f5f9',
-            }}>
-              <h3 style={{
-                margin: 0,
-                fontSize: '1.05rem',
-                fontWeight: 600,
-                color: '#0f172a',
-              }}>
-                {title}
-              </h3>
+        <div
+          className="fixed inset-0 w-screen h-screen bg-black/40 backdrop-blur-sm z-[9999999] flex items-center justify-center"
+          onClick={handleCancel}
+        >
+          <div
+            className="bg-white rounded-2xl w-[90%] max-w-[400px] shadow-2xl overflow-hidden border border-border"
+            style={{ animation: 'modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="px-6 pt-5 pb-3 border-b border-slate-100 flex items-center gap-2.5">
+              {variant === 'danger'
+                ? <AlertTriangle size={19} className="text-danger shrink-0" />
+                : <HelpCircle size={19} className="text-accent shrink-0" />}
+              <h3 className="text-[1.05rem] font-semibold text-primary">{title}</h3>
             </div>
-            {/* Body */}
-            <div style={{
-              padding: '20px 24px 24px 24px',
-            }}>
-              <p style={{
-                margin: 0,
-                fontSize: '0.88rem',
-                color: '#475569',
-                lineHeight: 1.5,
-              }}>
-                {message}
-              </p>
+            <div className="px-6 pt-5 pb-6">
+              <p className="text-[0.88rem] text-muted leading-relaxed">{message}</p>
             </div>
-            {/* Footer */}
-            <div style={{
-              padding: '12px 24px 20px 24px',
-              background: '#f8fafc',
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: '12px',
-              borderTop: '1px solid #e2e8f0',
-            }}>
-              <button 
+            <div className="px-6 pt-3 pb-5 bg-slate-50 flex justify-end gap-3 border-t border-border">
+              <button
                 onClick={handleCancel}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '8px',
-                  fontSize: '0.82rem',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  border: '1px solid #cbd5e1',
-                  background: '#ffffff',
-                  color: '#475569',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
-                onMouseLeave={e => e.currentTarget.style.background = '#ffffff'}
+                className="px-4 py-2 rounded-lg text-[0.82rem] font-medium cursor-pointer border border-border bg-white text-muted hover:bg-slate-100 transition-colors"
               >
                 {cancelText}
               </button>
-              <button 
+              <button
                 onClick={handleConfirm}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '8px',
-                  fontSize: '0.82rem',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  border: 'none',
-                  background: variant === 'danger' ? 'var(--danger)' : 'var(--primary)',
-                  color: '#ffffff',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={e => e.currentTarget.style.filter = 'brightness(0.95)'}
-                onMouseLeave={e => e.currentTarget.style.filter = 'none'}
+                className={`px-4 py-2 rounded-lg text-[0.82rem] font-medium cursor-pointer border-none text-white transition-colors ${
+                  variant === 'danger' ? 'bg-danger hover:bg-red-700' : 'bg-primary hover:bg-primary-2'
+                }`}
               >
                 {okText}
               </button>
             </div>
           </div>
-          
-          <style>{`
-            @keyframes modalScaleIn {
-              0% { transform: scale(0.95); opacity: 0; }
-              100% { transform: scale(1); opacity: 1; }
-            }
-          `}</style>
         </div>
       )}
     </ConfirmContext.Provider>

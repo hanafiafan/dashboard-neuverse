@@ -11,6 +11,7 @@ import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
 import Tag from '@/components/ui/Tag'
 import { formatRp, CASH_TIPE, DIVISI, todayStr } from '@/lib/utils'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
+import { HeartPulse, Banknote, Calendar, FolderOpen } from 'lucide-react'
 
 export default function FinancePage() {
   const confirm = useConfirm()
@@ -96,7 +97,7 @@ export default function FinancePage() {
     <div>
       <InnerTabs
         tabs={[
-          { key: 'kesehatan', label: '🫀 Kesehatan Kas' },
+          { key: 'kesehatan', label: 'Kesehatan Kas' },
           { key: 'konsolidasi', label: 'Konsolidasi' },
           { key: 'capaian', label: 'Capaian Bulanan' },
         ]}
@@ -106,30 +107,33 @@ export default function FinancePage() {
 
       {tab === 'kesehatan' && (
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-            <label style={{ fontSize: '0.78rem', fontWeight: 600 }}>Saldo Awal Kas (Rp):</label>
+          <div className="flex items-center gap-3 mb-4">
+            <label className="text-[0.78rem] font-semibold">Saldo Awal Kas (Rp):</label>
             <input
               type="number"
               value={saldoAwal}
               onChange={e => saveSaldoAwal(Number(e.target.value))}
-              style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: 8, width: 160, fontSize: '0.82rem' }}
+              className="px-2.5 py-1.5 border border-border rounded-lg w-40 text-[0.82rem] outline-none focus:border-accent transition-colors"
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 16 }}>
+          <div className="grid grid-cols-4 gap-3.5 mb-4">
             <StatCard label="Kas Saat Ini" value={formatRp(kasSaatIni)} sub="Saldo awal + arus kas" variant="blue" />
             <StatCard label="Net Burn / Bulan" value={avgNet > 0 ? formatRp(Math.round(avgNet)) : 'Surplus'} sub="Rata-rata 3 bln terakhir" accentColor="var(--danger)" />
-            <StatCard label="Runway" value={runwayTxt} sub="Sisa bulan operasional" variant="gold" />
+            <StatCard label="Runway" value={runwayTxt} sub="Sisa bulan operasional" variant="gold" icon={<HeartPulse size={18} />} />
             <StatCard label="Estimasi Kas Habis" value={avgNet > 0 ? new Date(Date.now() + runwayMonths * 30 * 86400000).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Surplus'} sub="Proyeksi tanggal" />
           </div>
 
           {avgNet > 0 && runwayMonths < 3 && (
-            <div style={{ background: '#fff1f0', border: '1px solid var(--danger)', borderRadius: 10, padding: '12px 16px', marginBottom: 16 }}>
-              <strong style={{ color: 'var(--danger)' }}>🔴 Runway kritis (&lt; 3 bulan).</strong> Segera tingkatkan revenue atau pangkas biaya variabel.
+            <div className="bg-[#fff1f0] border border-danger rounded-[10px] px-4 py-3 mb-4">
+              <strong className="text-danger inline-flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-danger inline-block" />
+                Runway kritis (&lt; 3 bulan).
+              </strong> Segera tingkatkan revenue atau pangkas biaya variabel.
             </div>
           )}
 
-          <Card icon="💸" title="Arus Kas Terstruktur" actions={
+          <Card icon={<Banknote size={18} />} title="Arus Kas Terstruktur" actions={
             <button className="btn btn-primary btn-sm" onClick={() => { setForm({ tipe: 'Revenue', tanggal: todayStr() }); setEditId(null); setModal('cash') }}>+ Tambah Transaksi</button>
           }>
             <DataTable columns={[
@@ -148,7 +152,7 @@ export default function FinancePage() {
             </DataTable>
           </Card>
 
-          <Card icon="📅" title="Rekap Bulanan">
+          <Card icon={<Calendar size={18} />} title="Rekap Bulanan">
             <DataTable columns={[{ key: 'bln', label: 'Bulan' }, { key: 'rev', label: 'Revenue' }, { key: 'fixed', label: 'Fixed' }, { key: 'var', label: 'Variable' }, { key: 'net', label: 'Net Burn' }, { key: 'st', label: 'Status' }]}>
               {months.map(m => {
                 const d = byMonth[m]; const net = (d.fixed + d.variable) - d.rev
@@ -169,12 +173,12 @@ export default function FinancePage() {
 
       {tab === 'konsolidasi' && (
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 16 }}>
+          <div className="grid grid-cols-3 gap-4 mb-4">
             <StatCard label="Total Pemasukan" value={formatRp(totalMasuk)} variant="accent" />
             <StatCard label="Total Pengeluaran" value={formatRp(totalKeluar)} variant="blue" />
             <StatCard label="Net Cash Flow" value={formatRp(totalMasuk - totalKeluar)} variant="gold" />
           </div>
-          <Card icon="📂" title="Rekapitulasi per Divisi" actions={
+          <Card icon={<FolderOpen size={18} />} title="Rekapitulasi per Divisi" actions={
             <button className="btn btn-outline btn-sm" onClick={() => { setForm({}); setEditId(null); setModal('rekap') }}>+ Tambah Divisi</button>
           }>
             <DataTable columns={[{ key: 'd', label: 'Divisi / Sumber' }, { key: 'm', label: 'Pemasukan' }, { key: 'k', label: 'Pengeluaran' }, { key: 's', label: 'Saldo' }, { key: 'ket', label: 'Keterangan' }, { key: 'ak', label: 'Aksi' }]}>
@@ -197,17 +201,17 @@ export default function FinancePage() {
       )}
 
       {tab === 'capaian' && (
-        <Card icon="📅" title="Capaian Bulanan (dari Forecasting)">
-          <p style={{ fontSize: '0.82rem', color: 'var(--muted)', marginBottom: 12 }}>Data ini otomatis dari modul Forecasting. Isi target dan realisasi di sana.</p>
+        <Card icon={<Calendar size={18} />} title="Capaian Bulanan (dari Forecasting)">
+          <p className="text-[0.82rem] text-muted mb-3">Data ini otomatis dari modul Forecasting. Isi target dan realisasi di sana.</p>
         </Card>
       )}
 
       <Modal open={modal === 'cash'} onClose={() => setModal(null)} title={editId ? 'Edit Transaksi' : '+ Tambah Transaksi'}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Tanggal"><FormInput type="date" value={form.tanggal || ''} onChange={e => setForm(f => ({ ...f, tanggal: e.target.value }))} /></FormGroup>
           <FormGroup label="Tipe"><FormSelect value={form.tipe || ''} onChange={e => setForm(f => ({ ...f, tipe: e.target.value }))}>{[...CASH_TIPE].map(o => <option key={o}>{o}</option>)}</FormSelect></FormGroup>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Kategori"><FormInput value={form.kategori || ''} onChange={e => setForm(f => ({ ...f, kategori: e.target.value }))} placeholder="mis: Gaji, Ads..." /></FormGroup>
           <FormGroup label="Divisi"><FormSelect value={form.divisi || ''} onChange={e => setForm(f => ({ ...f, divisi: e.target.value }))}><option value="">-</option>{DIVISI.map(o => <option key={o}>{o}</option>)}</FormSelect></FormGroup>
         </div>
@@ -217,7 +221,7 @@ export default function FinancePage() {
 
       <Modal open={modal === 'rekap'} onClose={() => setModal(null)} title={editId ? 'Edit Rekap' : '+ Tambah Rekap Divisi'}>
         <FormGroup label="Divisi / Sumber"><FormInput value={form.divisi || ''} onChange={e => setForm(f => ({ ...f, divisi: e.target.value }))} /></FormGroup>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Pemasukan"><FormInput type="number" value={form.masuk || 0} onChange={e => setForm(f => ({ ...f, masuk: e.target.value }))} /></FormGroup>
           <FormGroup label="Pengeluaran"><FormInput type="number" value={form.keluar || 0} onChange={e => setForm(f => ({ ...f, keluar: e.target.value }))} /></FormGroup>
         </div>

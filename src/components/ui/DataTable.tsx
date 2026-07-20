@@ -1,4 +1,5 @@
 import { ReactNode, Children } from 'react'
+import { Pencil, Trash2 } from 'lucide-react'
 
 interface Column {
   key: string
@@ -17,35 +18,25 @@ export default function DataTable({ columns, children, emptyMessage, minWidth }:
   const hasRows = Children.toArray(children).filter(Boolean).length > 0;
 
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', minWidth }}>
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse text-[0.8rem]" style={{ minWidth }}>
         <thead>
           <tr>
             {columns.map(col => (
               <th
                 key={col.key}
-                style={{
-                  background: '#f8f9fa',
-                  color: 'var(--muted)',
-                  fontSize: '0.7rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  padding: '10px 12px',
-                  textAlign: 'left',
-                  borderBottom: '2px solid var(--border)',
-                  width: col.width,
-                  whiteSpace: 'nowrap',
-                }}
+                className="bg-slate-50 text-muted text-[0.7rem] uppercase tracking-wide px-3 py-2.5 text-left border-b-2 border-border whitespace-nowrap"
+                style={{ width: col.width }}
               >
                 {col.label}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody>{children}</tbody>
+        <tbody className="[&>tr:hover>td]:bg-slate-50">{children}</tbody>
       </table>
       {!hasRows && emptyMessage && (
-        <div style={{ textAlign: 'center', padding: '24px', color: 'var(--muted)', fontSize: '0.85rem' }}>
+        <div className="text-center py-6 text-muted text-[0.85rem]">
           {emptyMessage}
         </div>
       )}
@@ -55,7 +46,7 @@ export default function DataTable({ columns, children, emptyMessage, minWidth }:
 
 export function Td({ children, style }: { children?: ReactNode; style?: React.CSSProperties }) {
   return (
-    <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', verticalAlign: 'middle', ...style }}>
+    <td className="px-3 py-2.5 border-b border-border align-middle" style={style}>
       {children}
     </td>
   )
@@ -63,18 +54,22 @@ export function Td({ children, style }: { children?: ReactNode; style?: React.CS
 
 export function ActionButtons({ onEdit, onDelete }: { onEdit?: () => void; onDelete: () => void }) {
   return (
-    <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)' }}>
-      <div style={{ display: 'flex', gap: 4 }}>
+    <td className="px-3 py-2.5 border-b border-border">
+      <div className="flex gap-1">
         {onEdit && (
           <button
             onClick={onEdit}
-            style={{ background: '#e3f2fd', color: '#1565c0', border: 'none', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', fontSize: '0.8rem' }}
-          >✏️</button>
+            className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border-none rounded-md p-1.5 cursor-pointer inline-flex"
+          >
+            <Pencil size={14} />
+          </button>
         )}
         <button
           onClick={onDelete}
-          style={{ background: '#fce4ec', color: '#c62828', border: 'none', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', fontSize: '0.8rem' }}
-        >🗑</button>
+          className="bg-red-50 text-red-600 hover:bg-red-100 border-none rounded-md p-1.5 cursor-pointer inline-flex"
+        >
+          <Trash2 size={14} />
+        </button>
       </div>
     </td>
   )

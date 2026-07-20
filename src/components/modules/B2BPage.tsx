@@ -10,13 +10,14 @@ import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
 import Tag from '@/components/ui/Tag'
 import { CLIENT_STATUS, STAGE_B2B, PROGRES_STATUS, CHK_STATUS, alertLevel, todayStr } from '@/lib/utils'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
+import { Building2, Globe2, CheckCircle2, RefreshCw, Rocket, Link2 } from 'lucide-react'
 
 interface Props { scope: 'internal' | 'external' }
 
 export default function B2BPage({ scope }: Props) {
   const confirm = useConfirm()
   const label = scope === 'internal' ? 'B2B Internal' : 'B2B Eksternal'
-  const icon = scope === 'internal' ? '🏢' : '🌐'
+  const Icon = scope === 'internal' ? Building2 : Globe2
 
   const [tab, setTab] = useState('cp')
   const [clients, setClients] = useState<B2BClient[]>([])
@@ -102,16 +103,16 @@ export default function B2BPage({ scope }: Props) {
   }
 
   const tabs = [
-    { key: 'cp', label: '📋 Client & Pipeline' },
-    { key: 'checklist', label: '✅ Checklist & Dokumen' },
+    { key: 'cp', label: 'Client & Pipeline' },
+    { key: 'checklist', label: 'Checklist & Dokumen' },
     ...activeClients.map(c => ({ key: `prog-${c.id}`, label: `${c.nama} — Progres` })),
   ]
 
-  if (loading) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>Memuat data...</div>
+  if (loading) return <div className="p-10 text-center text-muted">Memuat data...</div>
 
   return (
     <div>
-      <div style={{ marginBottom: 16, display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
+      <div className="mb-4 grid grid-cols-3 gap-4">
         <StatCard label="Client Aktif" value={activeClients.length} sub="Dari data client" />
         <StatCard label="Pipeline" value={pipeline.length} sub="Dari data pipeline" variant="accent" />
         <StatCard label="Ratio Closed" value={activeClients.length > 0 ? (pipeline.length / activeClients.length).toFixed(2) : '0'} sub="Pipeline ÷ Client Aktif" variant="gold" />
@@ -122,7 +123,7 @@ export default function B2BPage({ scope }: Props) {
       {/* Client & Pipeline */}
       {tab === 'cp' && (
         <>
-          <Card icon="✅" title="Client Aktif" actions={
+          <Card icon={<CheckCircle2 size={16} />} title="Client Aktif" actions={
             <button className="btn btn-outline btn-sm" onClick={() => { setForm({ status: 'Aktif' }); setEditId(null); setModal('client') }}>+ Tambah Client</button>
           }>
             <DataTable columns={[
@@ -149,11 +150,11 @@ export default function B2BPage({ scope }: Props) {
                     <Td>Rp {Number(c.nilai).toLocaleString('id-ID')}</Td>
                     <Td>{c.pic}</Td>
                     <Td style={{ minWidth: 110 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div className="progress-bar" style={{ width: 50 }}>
+                      <div className="flex items-center gap-2">
+                        <div className="progress-bar w-[50px]">
                           <div className={`progress-fill ${pct >= 100 ? 'fill-success' : pct >= 50 ? 'fill-blue' : 'fill-accent'}`} style={{ width: pct + '%' }} />
                         </div>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{pct}%</span>
+                        <span className="text-[0.8rem] font-semibold">{pct}%</span>
                       </div>
                     </Td>
                     <Td><Tag value={c.status} /></Td>
@@ -164,7 +165,7 @@ export default function B2BPage({ scope }: Props) {
             </DataTable>
           </Card>
 
-          <Card icon="🔄" title="Pipeline Client" actions={
+          <Card icon={<RefreshCw size={16} />} title="Pipeline Client" actions={
             <button className="btn btn-outline btn-sm" onClick={() => { setForm({ stage: STAGE_B2B[0], prob: 0, score: 0 }); setEditId(null); setModal('pipeline') }}>+ Tambah Pipeline</button>
           }>
             <DataTable columns={[
@@ -179,7 +180,7 @@ export default function B2BPage({ scope }: Props) {
                   <Td>Rp {Number(p.nilai).toLocaleString('id-ID')}</Td>
                   <Td>{p.pic}</Td><Td><Tag value={p.stage} /></Td>
                   <Td>{p.prob}%</Td>
-                  <Td style={{ color: p.score >= 70 ? 'var(--success)' : p.score >= 40 ? 'var(--warning)' : 'var(--muted)', fontWeight: 700 }}>{p.score}</Td>
+                  <Td style={{ color: p.score >= 70 ? '#059669' : p.score >= 40 ? '#d97706' : '#64748b', fontWeight: 700 }}>{p.score}</Td>
                   <ActionButtons onEdit={() => { setForm(p as any); setEditId(p.id); setModal('pipeline') }} onDelete={() => delRow('b2b_pipeline', p.id)} />
                 </tr>
               ))}
@@ -191,7 +192,7 @@ export default function B2BPage({ scope }: Props) {
       {/* Checklist */}
       {tab === 'checklist' && (
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14, marginBottom: 14 }}>
+          <div className="grid grid-cols-3 gap-3.5 mb-3.5">
             <StatCard label="Total Milestone" value={checklist.length} sub="Semua tugas klien" />
             <StatCard label="Proses (Kerja & Review)" value={checklist.filter(item => ['Proses Kerja', 'Review Internal'].includes(item.status)).length} sub="Dalam pengerjaan" variant="blue" />
             {(() => {
@@ -209,7 +210,7 @@ export default function B2BPage({ scope }: Props) {
               return <StatCard label="Rata-rata Progress Checklist" value={`${pct}%`} sub="Bobot status gabungan" variant="gold" />
             })()}
           </div>
-          <Card icon="✅" title="Milestone Checklist & Lampiran — Per Klien" actions={
+          <Card icon={<CheckCircle2 size={16} />} title="Milestone Checklist & Lampiran — Per Klien" actions={
             <button className="btn btn-primary btn-sm" onClick={() => { setForm({ status: CHK_STATUS[0] }); setEditId(null); setModal('checklist') }}>+ Tambah Milestone</button>
           }>
             <DataTable columns={[
@@ -226,7 +227,7 @@ export default function B2BPage({ scope }: Props) {
                     <Td>{item.task}</Td>
                     <Td>{item.target_date || '-'}</Td>
                     <Td><Tag value={item.status} /></Td>
-                    <Td>{item.link ? <a href={item.link} target="_blank" rel="noreferrer" style={{ color: 'var(--accent2)', fontSize: '0.78rem' }}>🔗 Link</a> : '-'}</Td>
+                    <Td>{item.link ? <a href={item.link} target="_blank" rel="noreferrer" className="text-info text-[0.78rem] inline-flex items-center gap-1"><Link2 size={12} /> Link</a> : '-'}</Td>
                     <ActionButtons onEdit={() => { setForm(item as any); setEditId(item.id); setModal('checklist') }} onDelete={() => delRow('b2b_checklist', item.id)} />
                   </tr>
                 )
@@ -238,7 +239,7 @@ export default function B2BPage({ scope }: Props) {
 
       {/* Per-client progress */}
       {activeClients.map(c => tab === `prog-${c.id}` && (
-        <Card key={c.id} icon="🚀" title={`Progres End-to-End — ${c.nama}`} actions={
+        <Card key={c.id} icon={<Rocket size={16} />} title={`Progres End-to-End — ${c.nama}`} actions={
           <button className="btn btn-primary btn-sm" onClick={() => { setForm({ status: PROGRES_STATUS[0] }); setEditId(null); setSelectedClient(c.id); setModal('progres') }}>+ Tambah Fase</button>
         }>
           <DataTable columns={[
@@ -260,7 +261,7 @@ export default function B2BPage({ scope }: Props) {
       <Modal open={modal === 'client'} onClose={() => setModal(null)} title={editId ? 'Edit Client' : '+ Tambah Client'}>
         <FormGroup label="Nama Client"><FormInput value={form.nama || ''} onChange={e => setForm(f => ({ ...f, nama: e.target.value }))} /></FormGroup>
         <FormGroup label="Jenis Layanan"><FormInput value={form.layanan || ''} onChange={e => setForm(f => ({ ...f, layanan: e.target.value }))} /></FormGroup>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Nilai (Rp)"><FormInput type="number" value={form.nilai || 0} onChange={e => setForm(f => ({ ...f, nilai: e.target.value }))} /></FormGroup>
           <FormGroup label="PIC"><FormInput value={form.pic || ''} onChange={e => setForm(f => ({ ...f, pic: e.target.value }))} /></FormGroup>
         </div>
@@ -275,11 +276,11 @@ export default function B2BPage({ scope }: Props) {
       <Modal open={modal === 'pipeline'} onClose={() => setModal(null)} title={editId ? 'Edit Pipeline' : '+ Tambah Pipeline'}>
         <FormGroup label="Nama Prospek"><FormInput value={form.nama || ''} onChange={e => setForm(f => ({ ...f, nama: e.target.value }))} /></FormGroup>
         <FormGroup label="Layanan"><FormInput value={form.layanan || ''} onChange={e => setForm(f => ({ ...f, layanan: e.target.value }))} /></FormGroup>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Est. Nilai"><FormInput type="number" value={form.nilai || 0} onChange={e => setForm(f => ({ ...f, nilai: e.target.value }))} /></FormGroup>
           <FormGroup label="PIC"><FormInput value={form.pic || ''} onChange={e => setForm(f => ({ ...f, pic: e.target.value }))} /></FormGroup>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-3 gap-3">
           <FormGroup label="Stage"><FormSelect value={form.stage || ''} onChange={e => setForm(f => ({ ...f, stage: e.target.value }))}>{STAGE_B2B.map(o => <option key={o}>{o}</option>)}</FormSelect></FormGroup>
           <FormGroup label="Prob %"><FormInput type="number" value={form.prob || 0} onChange={e => setForm(f => ({ ...f, prob: e.target.value }))} /></FormGroup>
           <FormGroup label="Lead Score"><FormInput type="number" value={form.score || 0} onChange={e => setForm(f => ({ ...f, score: e.target.value }))} /></FormGroup>
@@ -295,7 +296,7 @@ export default function B2BPage({ scope }: Props) {
           </FormSelect>
         </FormGroup>
         <FormGroup label="Tugas / Milestone"><FormInput value={form.task || ''} onChange={e => setForm(f => ({ ...f, task: e.target.value }))} /></FormGroup>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Target Date"><FormInput type="date" value={form.target_date || ''} onChange={e => setForm(f => ({ ...f, target_date: e.target.value }))} /></FormGroup>
           <FormGroup label="Status"><FormSelect value={form.status || ''} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>{CHK_STATUS.map(o => <option key={o}>{o}</option>)}</FormSelect></FormGroup>
         </div>
@@ -306,7 +307,7 @@ export default function B2BPage({ scope }: Props) {
       <Modal open={modal === 'progres'} onClose={() => setModal(null)} title="+ Tambah Fase Progres">
         <FormGroup label="Fase / Proses"><FormInput value={form.fase || ''} onChange={e => setForm(f => ({ ...f, fase: e.target.value }))} placeholder="contoh: Kickoff, Delivery..." /></FormGroup>
         <FormGroup label="Keterangan Implementasi"><FormInput value={form.keterangan || ''} onChange={e => setForm(f => ({ ...f, keterangan: e.target.value }))} /></FormGroup>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Tanggal"><FormInput type="date" value={form.tanggal || ''} onChange={e => setForm(f => ({ ...f, tanggal: e.target.value }))} /></FormGroup>
           <FormGroup label="Status"><FormSelect value={form.status || ''} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>{PROGRES_STATUS.map(o => <option key={o}>{o}</option>)}</FormSelect></FormGroup>
         </div>

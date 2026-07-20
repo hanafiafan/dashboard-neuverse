@@ -1,9 +1,12 @@
 import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
 import './globals.css'
 import Sidebar from '@/components/layout/Sidebar'
 import Topbar from '@/components/layout/Topbar'
 import ToastProvider from '@/components/ui/ToastProvider'
 import ConfirmProvider from '@/components/ui/ConfirmProvider'
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
   title: 'NEUverse Dashboard',
@@ -12,8 +15,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id">
-      <body className="flex min-h-screen bg-gray-100">
+    <html lang="id" className={inter.variable}>
+      <body className="flex min-h-screen bg-bg font-sans">
         <ToastProvider>
           <ConfirmProvider>
             <Sidebar />

@@ -1,9 +1,15 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import StatCard from '@/components/ui/StatCard'
 import Card from '@/components/ui/Card'
 import { formatRp, scoreLead, tempLead, daysSince, BULAN } from '@/lib/utils'
+import {
+  Flame, CheckCircle2, AlertTriangle, ShieldAlert, Target, BarChart3,
+  TrendingUp, TrendingDown, HeartPulse, Gem,
+} from 'lucide-react'
+
+const MONTH_KEYS = ['jan', 'feb', 'mar', 'apr', 'mei', 'jun', 'jul', 'agu', 'sep', 'okt', 'nov', 'des'] as const
 
 export default function HomeClient() {
   const [stats, setStats] = useState({
@@ -11,7 +17,7 @@ export default function HomeClient() {
     coursePipeline: 0, hotLeadsOverdue: 0, runway: '∞', netBurn: 0,
     targetRevenue: 0, realisasiRevenue: 0, checklistOverdue: 0,
   })
-  const [actionItems, setActionItems] = useState<{ lvl: number; icon: string; txt: string; act: string; href: string }[]>([])
+  const [actionItems, setActionItems] = useState<{ lvl: number; icon: ReactNode; txt: string; act: string; href: string }[]>([])
   const [targetPerDivisi, setTargetPerDivisi] = useState<{ divisi: string; pct: number; target: number; real: number }[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -32,6 +38,7 @@ export default function HomeClient() {
       { data: checklist },
       { data: kritis },
       { data: mitigasi },
+      { data: settings },
     ] = await Promise.all([
       (supabase.from('b2b_clients') as any).select('*'),
       (supabase.from('rekrutmen') as any).select('*'),
@@ -43,6 +50,7 @@ export default function HomeClient() {
       (supabase.from('b2b_checklist') as any).select('*'),
       (supabase.from('kritis') as any).select('*'),
       (supabase.from('mitigasi') as any).select('*'),
+      (supabase.from('settings') as any).select('*').eq('key', 'saldo_awal').single(),
     ])
 
     // KPIs
@@ -69,21 +77,27 @@ export default function HomeClient() {
       if (t === 'Hot' && d != null && d > 7 && l.stage !== 'Deal' && l.stage !== 'Lost') hotOver++
     })
 
-    // Forecast totals
-    const totalTarget = (forecast || []).reduce((s: number, r: any) => s + Number(r.target), 0)
-    const totalReal = (forecast || []).reduce((s: number, r: any) => s + Number(r.real), 0)
-
-    // Per divisi target
+    // Per divisi target/real (bug fix: Forecast rows have no target/real fields —
+    // target = sum of this year's 12 month columns; real = this year's cashflow Revenue by divisi)
+    const thisYear = new Date().getFullYear()
     const map: Record<string, { target: number; real: number }> = {}
-    ;(forecast || []).forEach((r: any) => {
+    ;(forecast || []).filter((r: any) => r.tahun === thisYear).forEach((r: any) => {
       if (!map[r.divisi]) map[r.divisi] = { target: 0, real: 0 }
-      map[r.divisi].target += Number(r.target)
-      map[r.divisi].real += Number(r.real)
+      map[r.divisi].target += MONTH_KEYS.reduce((s, mk) => s + Number(r[mk] || 0), 0)
     })
+    ;(cashflow || [])
+      .filter((c: any) => c.tipe === 'Revenue' && c.tanggal.slice(0, 4) === String(thisYear))
+      .forEach((c: any) => {
+        const d = c.divisi || ''
+        if (!map[d]) map[d] = { target: 0, real: 0 }
+        map[d].real += Number(c.nominal)
+      })
     const perDivisi = Object.entries(map).map(([divisi, v]: any) => ({
       divisi, pct: v.target ? Math.round(v.real / v.target * 100) : 0,
       target: v.target, real: v.real,
     }))
+    const totalTarget = perDivisi.reduce((s, v) => s + v.target, 0)
+    const totalReal = perDivisi.reduce((s, v) => s + v.real, 0)
 
     // Checklist overdue
     const today = new Date()
@@ -105,22 +119,28 @@ export default function HomeClient() {
     months.forEach(m => { netSum += byMonth[m].exp - byMonth[m].rev })
     const avgNet = months.length ? netSum / months.length : 0
 
+    // Kas saat ini (bug fix: was using 0 instead of actual cash-on-hand; same formula as Finance page)
+    const saldoAwal = settings ? Number(settings.value) || 0 : 0
+    const totalRev = (cashflow || []).filter((c: any) => c.tipe === 'Revenue').reduce((s: number, c: any) => s + Number(c.nominal), 0)
+    const totalExp = (cashflow || []).filter((c: any) => c.tipe !== 'Revenue').reduce((s: number, c: any) => s + Number(c.nominal), 0)
+    const kasSaatIni = saldoAwal + totalRev - totalExp
+
     // Action center
     const items: typeof actionItems = []
-    if (hotOver > 0) items.push({ lvl: 2, icon: '🔥', txt: `${hotOver} Hot lead diam > 7 hari`, act: 'Follow-up hari ini', href: '/marketing' })
-    if (chkOverdue > 0) items.push({ lvl: 2, icon: '✅', txt: `${chkOverdue} milestone B2B overdue`, act: 'Tinjau checklist B2B', href: '/b2b-internal' })
+    if (hotOver > 0) items.push({ lvl: 2, icon: <Flame size={16} />, txt: `${hotOver} Hot lead diam > 7 hari`, act: 'Follow-up hari ini', href: '/marketing' })
+    if (chkOverdue > 0) items.push({ lvl: 2, icon: <CheckCircle2 size={16} />, txt: `${chkOverdue} milestone B2B overdue`, act: 'Tinjau checklist B2B', href: '/b2b-internal' })
     ;(kritis || []).forEach((r: any) => {
       if (r.deadline && new Date(r.deadline) < today)
-        items.push({ lvl: 2, icon: '🚨', txt: `Posisi kritis "${r.posisi}" melewati deadline`, act: 'Headhunter → Posisi Kritis', href: '/headhunter' })
+        items.push({ lvl: 2, icon: <AlertTriangle size={16} />, txt: `Posisi kritis "${r.posisi}" melewati deadline`, act: 'Headhunter → Posisi Kritis', href: '/headhunter' })
     })
     ;(mitigasi || []).filter((r: any) => r.status === 'Terbuka').slice(0, 3).forEach((r: any) => {
-      items.push({ lvl: 1, icon: '🛡️', txt: `Resiko "${r.risiko}" belum ditangani`, act: 'Mitigasi Resiko', href: '/mitigasi' })
+      items.push({ lvl: 1, icon: <ShieldAlert size={16} />, txt: `Resiko "${r.risiko}" belum ditangani`, act: 'Mitigasi Resiko', href: '/mitigasi' })
     })
 
     setStats({
       klienAktif, revenueBulanIni: revBulanIni, posisiTerpenuhi,
       coursePipeline, hotLeadsOverdue: hotOver,
-      runway: avgNet > 0 ? (0 / avgNet).toFixed(1) + ' bln' : '∞',
+      runway: avgNet > 0 ? (kasSaatIni / avgNet).toFixed(1) + ' bln' : '∞',
       netBurn: avgNet, targetRevenue: totalTarget, realisasiRevenue: totalReal,
       checklistOverdue: chkOverdue,
     })
@@ -129,46 +149,43 @@ export default function HomeClient() {
     setLoading(false)
   }
 
-  if (loading) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>Memuat data...</div>
+  if (loading) return <div className="p-10 text-center text-muted">Memuat data...</div>
 
   return (
     <div>
       {/* Promise Banner */}
-      <div style={{
-        background: 'linear-gradient(135deg, var(--primary) 0%, var(--accent2) 100%)',
-        borderRadius: 14, padding: '28px 32px', color: '#fff', marginBottom: 22,
-        position: 'relative', overflow: 'hidden',
-      }}>
-        <div style={{ fontSize: '0.65rem', letterSpacing: 3, textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 8, fontWeight: 700 }}>
-          💎 Janji Neuverse
+      <div className="bg-gradient-to-br from-primary to-accent-hover rounded-2xl px-8 py-7 text-white mb-[22px] relative overflow-hidden">
+        <div className="flex items-center gap-1.5 text-[0.65rem] tracking-[3px] uppercase text-warning mb-2 font-bold">
+          <Gem size={12} /> Janji Neuverse
         </div>
-        <div style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: 12 }}>Komitmen Tim Kami</div>
-        <div style={{ fontSize: '0.88rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.85)', maxWidth: 680, fontStyle: 'italic' }}>
+        <div className="text-[1.3rem] font-extrabold mb-3">Komitmen Tim Kami</div>
+        <div className="text-[0.88rem] leading-[1.7] text-white/85 max-w-[680px] italic">
           "Kami tim Neuverse berkomitmen untuk selalu mendengarkan kebutuhan klien, memberikan solusi pelatihan yang berdampak, dan bekerja sama sebagai satu kesatuan tim yang tangguh demi mencapai keunggulan layanan."
         </div>
       </div>
 
       {/* Action Center */}
       <Card
-        icon="🚨"
+        icon={<AlertTriangle size={16} />}
         title={`Pusat Tindakan — Management by Exception (${actionItems.length})`}
         style={{ borderLeft: actionItems.some(i => i.lvl === 2) ? '4px solid var(--danger)' : actionItems.length ? '4px solid var(--warning)' : '4px solid var(--success)' }}
       >
         {actionItems.length === 0 ? (
-          <div style={{ padding: '14px', color: 'var(--success)', fontWeight: 600 }}>✅ Tidak ada yang membutuhkan tindakan segera. Semua sehat.</div>
+          <div className="flex items-center gap-2 p-3.5 text-success font-semibold">
+            <CheckCircle2 size={16} /> Tidak ada yang membutuhkan tindakan segera. Semua sehat.
+          </div>
         ) : (
           actionItems.map((it, i) => (
-            <a key={i} href={it.href} style={{ textDecoration: 'none' }}>
-              <div style={{
-                display: 'flex', alignItems: 'start', gap: 12, padding: '10px 12px',
-                borderRadius: 10, marginBottom: 8, cursor: 'pointer',
-                background: it.lvl === 2 ? '#fff1f0' : '#fffbe6',
-                borderLeft: `3px solid ${it.lvl === 2 ? 'var(--danger)' : 'var(--warning)'}`,
-              }}>
-                <span style={{ fontSize: '1.1rem', marginTop: 2 }}>{it.icon}</span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text)' }}>{it.txt}</div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>→ {it.act}</div>
+            <a key={i} href={it.href} className="no-underline">
+              <div
+                className={`flex items-start gap-3 px-3 py-2.5 rounded-[10px] mb-2 cursor-pointer border-l-[3px] ${
+                  it.lvl === 2 ? 'bg-[#fff1f0] border-l-danger' : 'bg-[#fffbe6] border-l-warning'
+                }`}
+              >
+                <span className="mt-0.5 text-muted">{it.icon}</span>
+                <div className="flex-1">
+                  <div className="font-semibold text-[0.85rem] text-primary">{it.txt}</div>
+                  <div className="text-[0.72rem] text-muted">→ {it.act}</div>
                 </div>
                 <span className={`tag ${it.lvl === 2 ? 'tag-danger' : 'tag-warning'}`}>
                   {it.lvl === 2 ? 'Mendesak' : 'Perhatian'}
@@ -180,22 +197,22 @@ export default function HomeClient() {
       </Card>
 
       {/* KPI Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 18 }}>
+      <div className="grid grid-cols-4 gap-3.5 mb-[18px]">
         <StatCard label="Total Klien Aktif" value={stats.klienAktif} sub="B2B Internal + Eksternal" variant="accent" />
         <StatCard label="Revenue Bulan Ini" value={formatRp(stats.revenueBulanIni)} sub="Dari Finance" variant="blue" />
         <StatCard label="Posisi Terpenuhi" value={stats.posisiTerpenuhi} sub="Dari Headhunter" variant="gold" />
         <StatCard label="Course Pipeline" value={stats.coursePipeline} sub="Dari Courses" accentColor="var(--success)" />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 18 }}>
-        <StatCard label="🫀 Runway" value={stats.netBurn > 0 ? (0 / stats.netBurn).toFixed(1) + ' bln' : '∞'} sub="Sisa bulan operasional" accentColor="var(--danger)" />
-        <StatCard label="📉 Net Burn / Bln" value={stats.netBurn > 0 ? formatRp(Math.round(stats.netBurn)) : 'Surplus'} sub="Rata-rata 3 bln" />
-        <StatCard label="🔥 Hot Leads Overdue" value={stats.hotLeadsOverdue} sub="Butuh follow-up" accentColor="var(--warning)" />
+      <div className="grid grid-cols-3 gap-4 mb-[18px]">
+        <StatCard label="Runway" value={stats.runway} sub="Sisa bulan operasional" accentColor="var(--danger)" icon={<HeartPulse size={18} />} />
+        <StatCard label="Net Burn / Bln" value={stats.netBurn > 0 ? formatRp(Math.round(stats.netBurn)) : 'Surplus'} sub="Rata-rata 3 bln" icon={<TrendingDown size={18} />} />
+        <StatCard label="Hot Leads Overdue" value={stats.hotLeadsOverdue} sub="Butuh follow-up" accentColor="var(--warning)" icon={<Flame size={18} />} />
       </div>
 
       {/* Target & Capaian */}
-      <Card icon="🎯" title="Target & Capaian (berdasarkan Forecasting)">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 16 }}>
+      <Card icon={<Target size={16} />} title="Target & Capaian (berdasarkan Forecasting)">
+        <div className="grid grid-cols-3 gap-4 mb-4">
           <StatCard label="Target Revenue" value={formatRp(stats.targetRevenue)} sub="Total forecast" />
           <StatCard label="Capaian Revenue" value={formatRp(stats.realisasiRevenue)} sub="Realisasi" />
           <StatCard
@@ -206,15 +223,15 @@ export default function HomeClient() {
           />
         </div>
         {targetPerDivisi.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 14, color: 'var(--muted)', fontSize: '0.82rem' }}>
+          <div className="text-center py-3.5 text-muted text-[0.82rem]">
             Belum ada data forecasting. Isi di tab Forecasting.
           </div>
         ) : (
           targetPerDivisi.map(d => (
-            <div key={d.divisi} style={{ marginBottom: 12 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: 4 }}>
+            <div key={d.divisi} className="mb-3">
+              <div className="flex justify-between text-[0.78rem] mb-1">
                 <span>{d.divisi}</span>
-                <span style={{ fontWeight: 700, color: d.pct >= 100 ? 'var(--success)' : d.pct >= 60 ? 'var(--accent2)' : 'var(--accent)' }}>
+                <span className={`font-bold ${d.pct >= 100 ? 'text-success' : d.pct >= 60 ? 'text-info' : 'text-accent'}`}>
                   {d.pct}%
                 </span>
               </div>
@@ -229,10 +246,10 @@ export default function HomeClient() {
         )}
       </Card>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
-        <StatCard label="✅ Checklist Overdue" value={stats.checklistOverdue} sub="Milestone B2B lewat target" accentColor="var(--accent2)" />
-        <StatCard label="📊 Total Klien" value={stats.klienAktif} sub="Aktif saat ini" />
-        <StatCard label="📈 Courses" value={stats.coursePipeline} sub="Pipeline & Akan Datang" />
+      <div className="grid grid-cols-3 gap-4">
+        <StatCard label="Checklist Overdue" value={stats.checklistOverdue} sub="Milestone B2B lewat target" accentColor="var(--accent-hover)" icon={<CheckCircle2 size={18} />} />
+        <StatCard label="Total Klien" value={stats.klienAktif} sub="Aktif saat ini" icon={<BarChart3 size={18} />} />
+        <StatCard label="Courses" value={stats.coursePipeline} sub="Pipeline & Akan Datang" icon={<TrendingUp size={18} />} />
       </div>
     </div>
   )

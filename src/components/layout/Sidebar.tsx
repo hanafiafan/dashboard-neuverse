@@ -1,32 +1,39 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import {
+  Home, Target, Building2, Globe2, BookOpen, Laptop, NotebookPen, BarChart3,
+  TrendingUp, ShieldAlert, Megaphone, LayoutGrid, Star, BookMarked, type LucideIcon,
+} from 'lucide-react'
 
-const NAV = [
+const NAV: { section: string; items: { href: string; Icon: LucideIcon; label: string }[] }[] = [
   { section: 'Beranda', items: [
-    { href: '/', icon: '🏠', label: 'Halaman Depan' },
+    { href: '/', Icon: Home, label: 'Halaman Depan' },
   ]},
   { section: 'Operasional', items: [
-    { href: '/headhunter', icon: '🎯', label: 'Headhunter' },
-    { href: '/b2b-internal', icon: '🏢', label: 'B2B Internal' },
-    { href: '/b2b-external', icon: '🌐', label: 'B2B Eksternal' },
+    { href: '/headhunter', Icon: Target, label: 'Headhunter' },
+    { href: '/b2b-internal', Icon: Building2, label: 'B2B Internal' },
+    { href: '/b2b-external', Icon: Globe2, label: 'B2B Eksternal' },
   ]},
   { section: 'Produk', items: [
-    { href: '/courses', icon: '📚', label: 'Courses' },
-    { href: '/lms', icon: '💻', label: 'LMS' },
+    { href: '/courses', Icon: BookOpen, label: 'Courses' },
+    { href: '/lms', Icon: Laptop, label: 'LMS' },
   ]},
   { section: 'Keuangan', items: [
-    { href: '/kas', icon: '📝', label: 'Buku Kas Harian' },
-    { href: '/finance', icon: '📊', label: 'Finance' },
+    { href: '/kas', Icon: NotebookPen, label: 'Buku Kas Harian' },
+    { href: '/finance', Icon: BarChart3, label: 'Finance' },
   ]},
   { section: 'Strategi', items: [
-    { href: '/forecasting', icon: '📈', label: 'Forecasting' },
-    { href: '/mitigasi', icon: '🛡️', label: 'Mitigasi Resiko' },
+    { href: '/forecasting', Icon: TrendingUp, label: 'Forecasting' },
+    { href: '/mitigasi', Icon: ShieldAlert, label: 'Mitigasi Resiko' },
   ]},
   { section: 'Pertumbuhan', items: [
-    { href: '/marketing', icon: '📣', label: 'Marketing Funnel' },
-    { href: '/resource', icon: '🧩', label: 'Resource Utilization' },
-    { href: '/client-success', icon: '⭐', label: 'Client Success' },
+    { href: '/marketing', Icon: Megaphone, label: 'Marketing Funnel' },
+    { href: '/resource', Icon: LayoutGrid, label: 'Resource Utilization' },
+    { href: '/client-success', Icon: Star, label: 'Client Success' },
+  ]},
+  { section: 'Bantuan', items: [
+    { href: '/docs', Icon: BookMarked, label: 'Dokumentasi' },
   ]},
 ]
 
@@ -35,54 +42,36 @@ export default function Sidebar() {
 
   return (
     <div
-      style={{
-        width: 'var(--sidebar-w)',
-        background: 'var(--primary)',
-        color: '#fff',
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: '100vh',
-        position: 'fixed',
-        left: 0,
-        top: 0,
-        zIndex: 100,
-      }}
+      className="flex flex-col fixed left-0 top-0 z-[100] min-h-screen bg-primary text-white"
+      style={{ width: 'var(--sidebar-w)' }}
     >
-      {/* Logo */}
-      <div style={{ padding: '20px 16px 12px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-        <div style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: 1 }}>
-          NEU<span style={{ color: 'var(--accent)' }}>verse</span>
+      <div className="px-4 pt-5 pb-3 border-b border-white/10">
+        <div className="text-xl font-extrabold tracking-wide">
+          NEU<span className="text-indigo-400">verse</span>
         </div>
-        <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', letterSpacing: 2, textTransform: 'uppercase', marginTop: 2 }}>
+        <div className="text-[0.65rem] text-white/40 tracking-[2px] uppercase mt-0.5">
           Team Dashboard
         </div>
       </div>
 
-      {/* Nav */}
-      <nav style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }}>
+      <nav className="flex-1 overflow-y-auto py-2.5">
         {NAV.map(({ section, items }) => (
           <div key={section}>
-            <div style={{ fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: 2, color: 'rgba(255,255,255,0.35)', padding: '8px 16px 4px' }}>
+            <div className="text-[0.6rem] uppercase tracking-[2px] text-white/35 px-4 pt-2 pb-1">
               {section}
             </div>
-            {items.map(({ href, icon, label }) => {
+            {items.map(({ href, Icon, label }) => {
               const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
               return (
-                <Link key={href} href={href} style={{ textDecoration: 'none' }}>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    padding: '10px 16px',
-                    cursor: 'pointer',
-                    fontSize: '0.82rem',
-                    borderLeft: active ? '3px solid var(--accent)' : '3px solid transparent',
-                    background: active ? 'rgba(233,69,96,0.15)' : 'transparent',
-                    color: active ? '#fff' : 'rgba(255,255,255,0.75)',
-                    fontWeight: active ? 600 : 400,
-                    transition: 'all 0.2s',
-                  }}>
-                    <span style={{ fontSize: '1rem', width: 20, textAlign: 'center' }}>{icon}</span>
+                <Link key={href} href={href} className="no-underline">
+                  <div
+                    className={`flex items-center gap-2.5 px-4 py-2.5 text-[0.82rem] border-l-[3px] transition-colors ${
+                      active
+                        ? 'border-indigo-400 bg-indigo-400/15 text-white font-semibold'
+                        : 'border-transparent text-white/70 hover:bg-white/5 hover:text-white'
+                    }`}
+                  >
+                    <Icon size={17} strokeWidth={2} className="shrink-0" />
                     {label}
                   </div>
                 </Link>
@@ -92,8 +81,8 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div style={{ padding: '12px 16px', borderTop: '1px solid rgba(255,255,255,0.1)', fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)' }}>
-        NEUverse © 2025 · v9
+      <div className="px-4 py-3 border-t border-white/10 text-[0.7rem] text-white/35">
+        NEUverse © 2026 · v10
       </div>
     </div>
   )

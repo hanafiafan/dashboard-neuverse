@@ -3,28 +3,21 @@ import { ReactNode } from 'react'
 interface CardProps {
   children: ReactNode
   title?: string
-  icon?: string
+  icon?: ReactNode
   style?: React.CSSProperties
   actions?: ReactNode
 }
 
 export default function Card({ children, title, icon, style, actions }: CardProps) {
   return (
-    <div style={{
-      background: 'var(--card-bg)',
-      borderRadius: 12,
-      border: '1px solid var(--border)',
-      padding: 20,
-      marginBottom: 18,
-      ...style,
-    }}>
+    <div
+      className="bg-white rounded-xl border border-border p-5 mb-4 shadow-sm"
+      style={style}
+    >
       {title && (
-        <div style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          marginBottom: 14,
-        }}>
-          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
-            {icon && <span style={{ fontSize: '1rem' }}>{icon}</span>}
+        <div className="flex justify-between items-center mb-3.5">
+          <div className="text-[0.85rem] font-bold text-primary flex items-center gap-2">
+            {icon && <span className="text-accent inline-flex">{icon}</span>}
             {title}
           </div>
           {actions}
@@ -37,31 +30,27 @@ export default function Card({ children, title, icon, style, actions }: CardProp
 
 export function SectionHeader({ title, children }: { title: string; children?: ReactNode }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-      <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--primary)' }}>{title}</div>
+    <div className="flex justify-between items-center mb-4">
+      <div className="text-[0.95rem] font-bold text-primary">{title}</div>
       {children}
     </div>
   )
 }
 
 export function InnerTabs({ tabs, active, onTab }: {
-  tabs: { key: string; label: string }[]
+  tabs: { key: string; label: ReactNode }[]
   active: string
   onTab: (key: string) => void
 }) {
   return (
-    <div style={{ display: 'flex', gap: 4, background: '#f0f2f5', padding: 4, borderRadius: 10, marginBottom: 18, width: 'fit-content' }}>
+    <div className="flex gap-1 bg-slate-100 p-1 rounded-[10px] mb-4 w-fit flex-wrap">
       {tabs.map(t => (
         <button
           key={t.key}
           onClick={() => onTab(t.key)}
-          style={{
-            padding: '7px 16px', borderRadius: 8, fontSize: '0.78rem', fontWeight: 600,
-            border: 'none', cursor: 'pointer', transition: 'all 0.2s',
-            background: active === t.key ? '#fff' : 'transparent',
-            color: active === t.key ? 'var(--primary)' : 'var(--muted)',
-            boxShadow: active === t.key ? '0 2px 8px rgba(0,0,0,0.1)' : 'none',
-          }}
+          className={`px-4 py-1.5 rounded-lg text-[0.78rem] font-semibold border-none cursor-pointer transition-all ${
+            active === t.key ? 'bg-white text-primary shadow-sm' : 'bg-transparent text-muted hover:text-primary'
+          }`}
         >
           {t.label}
         </button>

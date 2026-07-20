@@ -10,6 +10,7 @@ import Tag from '@/components/ui/Tag'
 import StatCard from '@/components/ui/StatCard'
 import { PRIORITAS, MITIGASI_STATUS, alertLevel, daysSince } from '@/lib/utils'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
+import { ShieldAlert, AlertCircle } from 'lucide-react'
 
 export default function MitigasiPage() {
   const confirm = useConfirm()
@@ -62,7 +63,7 @@ export default function MitigasiPage() {
 
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 16 }}>
+      <div className="grid grid-cols-4 gap-3.5 mb-4">
         <StatCard label="Total Risiko" value={String(rows.length)} sub="Semua risiko terdaftar" />
         <StatCard label="Terbuka" value={String(terbuka)} sub="Belum selesai" variant="blue" />
         <StatCard label="Kritis" value={String(kritis)} sub="Prioritas Tinggi aktif" accentColor="var(--danger)" />
@@ -70,12 +71,13 @@ export default function MitigasiPage() {
       </div>
 
       {overdue > 0 && (
-        <div style={{ background: '#fff1f0', border: '1px solid var(--danger)', borderRadius: 10, padding: '12px 16px', marginBottom: 16 }}>
-          <strong style={{ color: 'var(--danger)' }}>⚠️ {overdue} risiko melewati deadline.</strong> Tinjau segera dan perbarui statusnya.
+        <div className="flex items-center gap-2 bg-red-50 border border-danger rounded-[10px] px-4 py-3 mb-4 text-sm">
+          <AlertCircle size={16} className="text-danger shrink-0" />
+          <span><strong className="text-danger">{overdue} risiko melewati deadline.</strong> Tinjau segera dan perbarui statusnya.</span>
         </div>
       )}
 
-      <Card icon="🛡️" title="Register Risiko & Mitigasi" actions={
+      <Card icon={<ShieldAlert size={16} />} title="Register Risiko & Mitigasi" actions={
         <button className="btn btn-primary btn-sm" onClick={() => { setForm({ probabilitas: 'Rendah', prioritas: 'Sedang', status: MITIGASI_STATUS[0] }); setEditId(null); setModal(true) }}>+ Tambah Risiko</button>
       }>
         <DataTable columns={[
@@ -98,7 +100,7 @@ export default function MitigasiPage() {
               <Td>{r.pic}</Td>
               <Td>{r.deadline ? (() => {
                 const d = daysSince(r.deadline) ?? 0
-                return <span style={{ color: d > 0 && r.status !== 'Selesai' ? 'var(--danger)' : 'inherit', fontWeight: d > 0 ? 700 : 400 }}>
+                return <span className={`${d > 0 && r.status !== 'Selesai' ? 'text-danger' : ''} ${d > 0 ? 'font-bold' : 'font-normal'}`}>
                   {r.deadline} {d > 0 && r.status !== 'Selesai' ? `(+${d} hari)` : ''}
                 </span>
               })() : '-'}</Td>
@@ -116,7 +118,7 @@ export default function MitigasiPage() {
       <Modal open={modal} onClose={() => setModal(false)} title={editId ? 'Edit Risiko' : '+ Tambah Risiko'}>
         <FormGroup label="Risiko"><FormInput value={form.risiko || ''} onChange={e => setForm(f => ({ ...f, risiko: e.target.value }))} /></FormGroup>
         <FormGroup label="Dampak"><FormInput value={form.dampak || ''} onChange={e => setForm(f => ({ ...f, dampak: e.target.value }))} /></FormGroup>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Probabilitas">
             <FormSelect value={form.probabilitas || 'Rendah'} onChange={e => setForm(f => ({ ...f, probabilitas: e.target.value }))}>
               <option>Rendah</option><option>Sedang</option><option>Tinggi</option>
@@ -128,7 +130,7 @@ export default function MitigasiPage() {
             </FormSelect>
           </FormGroup>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="PIC"><FormInput value={form.pic || ''} onChange={e => setForm(f => ({ ...f, pic: e.target.value }))} /></FormGroup>
           <FormGroup label="Deadline"><FormInput type="date" value={form.deadline || ''} onChange={e => setForm(f => ({ ...f, deadline: e.target.value }))} /></FormGroup>
         </div>

@@ -10,9 +10,10 @@ import Modal, { FormGroup, FormInput, FormSelect, ModalActions, BtnPrimary, BtnO
 import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
 import { formatRp, todayStr, isGoogleDocLink } from '@/lib/utils'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
+import { NotebookPen, FolderOpen, ClipboardList, FileText, BarChart3 } from 'lucide-react'
 
 const TABS = [
-  { key: 'master', label: '📊 Konsolidasi' },
+  { key: 'master', label: <span className="inline-flex items-center gap-1.5"><BarChart3 size={14} /> Konsolidasi</span> },
   { key: 'headhunter', label: 'Headhunter' },
   { key: 'b2b-internal', label: 'B2B Internal' },
   { key: 'b2b-external', label: 'B2B Eksternal' },
@@ -73,41 +74,45 @@ export default function KasPage() {
 
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 16 }}>
+      <div className="grid grid-cols-3 gap-4 mb-4">
         <StatCard label="Total Pemasukan" value={formatRp(allTotals.m)} accentColor="var(--success)" />
         <StatCard label="Total Pengeluaran" value={formatRp(allTotals.k)} accentColor="var(--danger)" />
-        <StatCard label="Saldo" value={formatRp(allTotals.m - allTotals.k)} accentColor="var(--accent2)" />
+        <StatCard label="Saldo" value={formatRp(allTotals.m - allTotals.k)} accentColor="var(--accent)" />
       </div>
 
       <InnerTabs tabs={TABS} active={tab} onTab={setTab} />
 
       {tab === 'master' && (
         <>
-          <Card icon="📂" title="Rekap per Tab">
+          <Card icon={<FolderOpen size={16} />} title="Rekap per Tab">
             <DataTable columns={[{ key: 't', label: 'Tab / Divisi' }, { key: 'm', label: 'Pemasukan' }, { key: 'k', label: 'Pengeluaran' }, { key: 's', label: 'Saldo' }, { key: 'n', label: 'Jml Transaksi' }]}>
               {TABS.filter(t => t.key !== 'master').map(t => {
                 const data = divData(t.key); const tot = totals(data)
                 return (
                   <tr key={t.key}>
                     <Td><strong>{t.label}</strong></Td>
-                    <Td style={{ color: 'var(--success)' }}>{formatRp(tot.m)}</Td>
-                    <Td style={{ color: 'var(--danger)' }}>{formatRp(tot.k)}</Td>
-                    <Td style={{ fontWeight: 700 }}>{formatRp(tot.m - tot.k)}</Td>
+                    <Td><span className="text-success">{formatRp(tot.m)}</span></Td>
+                    <Td><span className="text-danger">{formatRp(tot.k)}</span></Td>
+                    <Td><span className="font-bold">{formatRp(tot.m - tot.k)}</span></Td>
                     <Td>{data.length}</Td>
                   </tr>
                 )
               })}
             </DataTable>
           </Card>
-          <Card icon="📋" title="Semua Transaksi (Konsolidasi)">
+          <Card icon={<ClipboardList size={16} />} title="Semua Transaksi (Konsolidasi)">
             <DataTable columns={[{ key: 'tgl', label: 'Tanggal' }, { key: 'tab', label: 'Tab' }, { key: 'ket', label: 'Keterangan' }, { key: 'jenis', label: 'Jenis' }, { key: 'nom', label: 'Nominal' }, { key: 'file', label: 'Bukti' }]}>
               {kas.map(k => (
                 <tr key={k.id}>
                   <Td>{new Date(k.tgl).toLocaleDateString('id-ID')}</Td>
                   <Td>{k.divisi}</Td><Td>{k.ket}</Td>
                   <Td><span className={`tag ${k.jenis === 'masuk' ? 'tag-success' : 'tag-danger'}`}>{k.jenis === 'masuk' ? 'Masuk' : 'Keluar'}</span></Td>
-                  <Td style={{ fontWeight: 700, color: k.jenis === 'masuk' ? 'var(--success)' : 'var(--danger)' }}>{formatRp(k.nominal)}</Td>
-                  <Td>{k.file_url ? <a href={k.file_url} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm" style={{ padding: '2px 6px', fontSize: '0.72rem', color: 'var(--accent2)' }}>📄 Lihat</a> : '-'}</Td>
+                  <Td><span className={`font-bold ${k.jenis === 'masuk' ? 'text-success' : 'text-danger'}`}>{formatRp(k.nominal)}</span></Td>
+                  <Td>{k.file_url ? (
+                    <a href={k.file_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-border text-[0.72rem] font-semibold text-accent hover:bg-slate-50 transition-colors">
+                      <FileText size={12} /> Lihat
+                    </a>
+                  ) : '-'}</Td>
                 </tr>
               ))}
             </DataTable>
@@ -116,17 +121,17 @@ export default function KasPage() {
       )}
 
       {tab !== 'master' && (
-        <Card title={`📝 Kas ${TABS.find(t => t.key === tab)?.label}`} actions={
+        <Card icon={<NotebookPen size={16} />} title={`Kas ${TABS.find(t => t.key === tab)?.label}`} actions={
           <button className="btn btn-primary btn-sm" onClick={() => { setForm({ jenis: 'masuk', tgl: todayStr(), divisi: tab }); setModal(true) }}>+ Tambah Transaksi</button>
         }>
           {(() => {
             const data = divData(tab); const tot = totals(data)
             return (
               <>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14, marginBottom: 14 }}>
+                <div className="grid grid-cols-3 gap-3.5 mb-3.5">
                   <StatCard label="Pemasukan" value={formatRp(tot.m)} accentColor="var(--success)" />
                   <StatCard label="Pengeluaran" value={formatRp(tot.k)} accentColor="var(--danger)" />
-                  <StatCard label="Saldo" value={formatRp(tot.m - tot.k)} accentColor="var(--accent2)" />
+                  <StatCard label="Saldo" value={formatRp(tot.m - tot.k)} accentColor="var(--accent)" />
                 </div>
                 <DataTable columns={[{ key: 'tgl', label: 'Tanggal' }, { key: 'ket', label: 'Keterangan' }, { key: 'j', label: 'Jenis' }, { key: 'nom', label: 'Nominal' }, { key: 'file', label: 'Bukti' }, { key: 'ak', label: 'Aksi' }]}>
                   {data.map(k => (
@@ -134,8 +139,12 @@ export default function KasPage() {
                       <Td>{new Date(k.tgl).toLocaleDateString('id-ID')}</Td>
                       <Td>{k.ket}</Td>
                       <Td><span className={`tag ${k.jenis === 'masuk' ? 'tag-success' : 'tag-danger'}`}>{k.jenis === 'masuk' ? 'Masuk' : 'Keluar'}</span></Td>
-                      <Td style={{ fontWeight: 700, color: k.jenis === 'masuk' ? 'var(--success)' : 'var(--danger)' }}>{formatRp(k.nominal)}</Td>
-                      <Td>{k.file_url ? <a href={k.file_url} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm" style={{ padding: '2px 6px', fontSize: '0.72rem', color: 'var(--accent2)' }}>📄 Lihat</a> : '-'}</Td>
+                      <Td><span className={`font-bold ${k.jenis === 'masuk' ? 'text-success' : 'text-danger'}`}>{formatRp(k.nominal)}</span></Td>
+                      <Td>{k.file_url ? (
+                        <a href={k.file_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-border text-[0.72rem] font-semibold text-accent hover:bg-slate-50 transition-colors">
+                          <FileText size={12} /> Lihat
+                        </a>
+                      ) : '-'}</Td>
                       <ActionButtons onDelete={() => delKas(k.id)} />
                     </tr>
                   ))}
@@ -154,7 +163,7 @@ export default function KasPage() {
             {TABS.filter(t => t.key !== 'master').map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
           </FormSelect>
         </FormGroup>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Jenis">
             <FormSelect value={form.jenis || 'masuk'} onChange={e => setForm(f => ({ ...f, jenis: e.target.value }))}>
               <option value="masuk">Pemasukan</option>

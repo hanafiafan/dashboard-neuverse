@@ -15,6 +15,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/marketing': 'Marketing Funnel',
   '/resource': 'Resource Utilization',
   '/client-success': 'Client Success',
+  '/docs': 'Dokumentasi',
 }
 
 export default function Topbar() {
@@ -23,22 +24,11 @@ export default function Topbar() {
   const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
   return (
-    <div style={{
-      background: '#fff',
-      borderBottom: '1px solid var(--border)',
-      padding: '14px 28px',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      position: 'sticky',
-      top: 0,
-      zIndex: 50,
-    }}>
-      <div style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--primary)' }}>{title}</div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{today}</span>
-
-        <span style={{ background: 'var(--accent)', color: '#fff', borderRadius: 20, padding: '4px 12px', fontSize: '0.7rem', fontWeight: 600 }}>
+    <div className="sticky top-0 z-50 flex items-center justify-between bg-white border-b border-border px-7 py-3.5">
+      <div className="text-[1.05rem] font-bold text-primary">{title}</div>
+      <div className="flex items-center gap-3.5">
+        <span className="text-xs text-muted">{today}</span>
+        <span className="bg-accent text-white rounded-full px-3 py-1 text-[0.7rem] font-semibold">
           Tim Aktif
         </span>
       </div>

@@ -10,6 +10,7 @@ import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
 import StatCard from '@/components/ui/StatCard'
 import { formatRp, DIVISI, MONTH_KEYS, BULAN } from '@/lib/utils'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
+import { Target, TrendingUp, Wallet, Pencil, Trash2 } from 'lucide-react'
 
 const MONTHS = MONTH_KEYS // ['jan','feb',...,'des']
 
@@ -76,60 +77,64 @@ export default function ForecastingPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-        <label style={{ fontSize: '0.78rem', fontWeight: 600 }}>Tahun:</label>
-        <select value={year} onChange={e => setYear(Number(e.target.value))} style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: 8, fontSize: '0.82rem' }}>
+      <div className="flex items-center gap-3 mb-4">
+        <label className="text-[0.78rem] font-semibold">Tahun:</label>
+        <select
+          value={year}
+          onChange={e => setYear(Number(e.target.value))}
+          className="px-2.5 py-1.5 border border-border rounded-lg text-[0.82rem]"
+        >
           {[2024, 2025, 2026, 2027].map(y => <option key={y}>{y}</option>)}
         </select>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14, marginBottom: 16 }}>
-        <StatCard label="Total Target Revenue" value={formatRp(annualRev)} sub={`Tahun ${year}`} variant="accent" />
-        <StatCard label="Total Projected Cost" value={formatRp(annualCost)} sub={`Tahun ${year}`} variant="blue" />
-        <StatCard label="Projected Net" value={formatRp(annualRev - annualCost)} sub="Revenue - Cost" variant={annualRev >= annualCost ? 'gold' : 'default'} accentColor={annualRev < annualCost ? 'var(--danger)' : undefined} />
+      <div className="grid grid-cols-3 gap-3.5 mb-4">
+        <StatCard label="Total Target Revenue" value={formatRp(annualRev)} sub={`Tahun ${year}`} variant="accent" icon={<Target size={18} />} />
+        <StatCard label="Total Projected Cost" value={formatRp(annualCost)} sub={`Tahun ${year}`} variant="blue" icon={<Wallet size={18} />} />
+        <StatCard label="Projected Net" value={formatRp(annualRev - annualCost)} sub="Revenue - Cost" variant={annualRev >= annualCost ? 'gold' : 'default'} accentColor={annualRev < annualCost ? '#dc2626' : undefined} />
       </div>
 
       <InnerTabs
-        tabs={[{ key: 'target', label: '🎯 Target Pendapatan' }, { key: 'cost', label: '💰 Cost Matrix' }]}
+        tabs={[{ key: 'target', label: 'Target Pendapatan' }, { key: 'cost', label: 'Cost Matrix' }]}
         active={tab}
         onTab={setTab}
       />
 
       {tab === 'target' && (
-        <Card icon="📈" title="Target Revenue per Divisi" actions={
+        <Card icon={<TrendingUp size={18} />} title="Target Revenue per Divisi" actions={
           <button className="btn btn-primary btn-sm" onClick={() => { setForm({}); setEditId(null); setModal('fc') }}>+ Tambah Target</button>
         }>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-[0.8rem]">
               <thead>
-                <tr style={{ background: 'var(--surface2)' }}>
-                  <th style={{ padding: '8px 12px', textAlign: 'left', position: 'sticky', left: 0, background: 'var(--surface2)', zIndex: 1 }}>Divisi</th>
-                  {BULAN.map(b => <th key={b} style={{ padding: '8px 8px', textAlign: 'right', whiteSpace: 'nowrap' }}>{b}</th>)}
-                  <th style={{ padding: '8px 8px', textAlign: 'right', fontWeight: 700 }}>Total</th>
-                  <th style={{ padding: '8px 8px' }}>Aksi</th>
+                <tr className="bg-slate-50">
+                  <th className="px-3 py-2 text-left sticky left-0 bg-slate-50 z-[1]">Divisi</th>
+                  {BULAN.map(b => <th key={b} className="px-2 py-2 text-right whitespace-nowrap">{b}</th>)}
+                  <th className="px-2 py-2 text-right font-bold">Total</th>
+                  <th className="px-2 py-2">Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {forecasts.map(r => {
                   const total = MONTHS.reduce((s, m) => s + (Number((r as any)[m]) || 0), 0)
                   return (
-                    <tr key={r.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                      <td style={{ padding: '8px 12px', fontWeight: 600, position: 'sticky', left: 0, background: 'var(--surface)' }}>{r.divisi}</td>
-                      {MONTHS.map(m => <td key={m} style={{ padding: '8px 8px', textAlign: 'right' }}>{formatRp(Number((r as any)[m]) || 0)}</td>)}
-                      <td style={{ padding: '8px 8px', textAlign: 'right', fontWeight: 700, color: 'var(--success)' }}>{formatRp(total)}</td>
-                      <td style={{ padding: '8px 8px' }}>
-                        <div style={{ display: 'flex', gap: 4 }}>
-                          <button className="btn btn-outline btn-sm" onClick={() => { setForm(r as any); setEditId(r.id); setModal('fc') }}>✏️</button>
-                          <button className="btn btn-outline btn-sm" style={{ color: 'var(--danger)' }} onClick={() => delRow('forecast', r.id)}>🗑️</button>
+                    <tr key={r.id} className="border-b border-border">
+                      <td className="px-3 py-2 font-semibold sticky left-0 bg-white">{r.divisi}</td>
+                      {MONTHS.map(m => <td key={m} className="px-2 py-2 text-right">{formatRp(Number((r as any)[m]) || 0)}</td>)}
+                      <td className="px-2 py-2 text-right font-bold text-success">{formatRp(total)}</td>
+                      <td className="px-2 py-2">
+                        <div className="flex gap-1">
+                          <button className="btn btn-outline btn-sm" onClick={() => { setForm(r as any); setEditId(r.id); setModal('fc') }}><Pencil size={14} /></button>
+                          <button className="btn btn-outline btn-sm text-danger" onClick={() => delRow('forecast', r.id)}><Trash2 size={14} /></button>
                         </div>
                       </td>
                     </tr>
                   )
                 })}
-                <tr style={{ background: 'var(--surface2)', fontWeight: 700 }}>
-                  <td style={{ padding: '8px 12px', position: 'sticky', left: 0, background: 'var(--surface2)' }}>TOTAL</td>
-                  {MONTHS.map(m => <td key={m} style={{ padding: '8px 8px', textAlign: 'right', color: 'var(--success)' }}>{formatRp(fcTotals[m] || 0)}</td>)}
-                  <td style={{ padding: '8px 8px', textAlign: 'right', color: 'var(--success)' }}>{formatRp(annualRev)}</td>
+                <tr className="bg-slate-50 font-bold">
+                  <td className="px-3 py-2 sticky left-0 bg-slate-50">TOTAL</td>
+                  {MONTHS.map(m => <td key={m} className="px-2 py-2 text-right text-success">{formatRp(fcTotals[m] || 0)}</td>)}
+                  <td className="px-2 py-2 text-right text-success">{formatRp(annualRev)}</td>
                   <td />
                 </tr>
               </tbody>
@@ -139,42 +144,42 @@ export default function ForecastingPage() {
       )}
 
       {tab === 'cost' && (
-        <Card icon="💸" title="Cost Matrix 12 Bulan" actions={
+        <Card icon={<Wallet size={18} />} title="Cost Matrix 12 Bulan" actions={
           <button className="btn btn-primary btn-sm" onClick={() => { setForm({ tipe: 'Fixed' }); setEditId(null); setModal('cost') }}>+ Tambah Baris</button>
         }>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-[0.8rem]">
               <thead>
-                <tr style={{ background: 'var(--surface2)' }}>
-                  <th style={{ padding: '8px 12px', textAlign: 'left', position: 'sticky', left: 0, background: 'var(--surface2)', zIndex: 1 }}>Kategori</th>
-                  <th style={{ padding: '8px 8px', textAlign: 'left' }}>Tipe</th>
-                  {BULAN.map(b => <th key={b} style={{ padding: '8px 8px', textAlign: 'right', whiteSpace: 'nowrap' }}>{b}</th>)}
-                  <th style={{ padding: '8px 8px', textAlign: 'right', fontWeight: 700 }}>Total</th>
-                  <th style={{ padding: '8px 8px' }}>Aksi</th>
+                <tr className="bg-slate-50">
+                  <th className="px-3 py-2 text-left sticky left-0 bg-slate-50 z-[1]">Kategori</th>
+                  <th className="px-2 py-2 text-left">Tipe</th>
+                  {BULAN.map(b => <th key={b} className="px-2 py-2 text-right whitespace-nowrap">{b}</th>)}
+                  <th className="px-2 py-2 text-right font-bold">Total</th>
+                  <th className="px-2 py-2">Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {costs.map(r => {
                   const total = MONTHS.reduce((s, m) => s + (Number((r as any)[m]) || 0), 0)
                   return (
-                    <tr key={r.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                      <td style={{ padding: '8px 12px', fontWeight: 600, position: 'sticky', left: 0, background: 'var(--surface)' }}>{r.kategori}</td>
-                      <td style={{ padding: '8px 8px' }}><span className={`tag ${r.tipe === 'Fixed' ? 'tag-info' : 'tag-warning'}`}>{r.tipe}</span></td>
-                      {MONTHS.map(m => <td key={m} style={{ padding: '8px 8px', textAlign: 'right' }}>{formatRp(Number((r as any)[m]) || 0)}</td>)}
-                      <td style={{ padding: '8px 8px', textAlign: 'right', fontWeight: 700, color: 'var(--danger)' }}>{formatRp(total)}</td>
-                      <td style={{ padding: '8px 8px' }}>
-                        <div style={{ display: 'flex', gap: 4 }}>
-                          <button className="btn btn-outline btn-sm" onClick={() => { setForm(r as any); setEditId(r.id); setModal('cost') }}>✏️</button>
-                          <button className="btn btn-outline btn-sm" style={{ color: 'var(--danger)' }} onClick={() => delRow('forecast_cost', r.id)}>🗑️</button>
+                    <tr key={r.id} className="border-b border-border">
+                      <td className="px-3 py-2 font-semibold sticky left-0 bg-white">{r.kategori}</td>
+                      <td className="px-2 py-2"><span className={`tag ${r.tipe === 'Fixed' ? 'tag-info' : 'tag-warning'}`}>{r.tipe}</span></td>
+                      {MONTHS.map(m => <td key={m} className="px-2 py-2 text-right">{formatRp(Number((r as any)[m]) || 0)}</td>)}
+                      <td className="px-2 py-2 text-right font-bold text-danger">{formatRp(total)}</td>
+                      <td className="px-2 py-2">
+                        <div className="flex gap-1">
+                          <button className="btn btn-outline btn-sm" onClick={() => { setForm(r as any); setEditId(r.id); setModal('cost') }}><Pencil size={14} /></button>
+                          <button className="btn btn-outline btn-sm text-danger" onClick={() => delRow('forecast_cost', r.id)}><Trash2 size={14} /></button>
                         </div>
                       </td>
                     </tr>
                   )
                 })}
-                <tr style={{ background: 'var(--surface2)', fontWeight: 700 }}>
-                  <td style={{ padding: '8px 12px', position: 'sticky', left: 0, background: 'var(--surface2)' }} colSpan={2}>TOTAL</td>
-                  {MONTHS.map(m => <td key={m} style={{ padding: '8px 8px', textAlign: 'right', color: 'var(--danger)' }}>{formatRp(costTotals[m] || 0)}</td>)}
-                  <td style={{ padding: '8px 8px', textAlign: 'right', color: 'var(--danger)' }}>{formatRp(annualCost)}</td>
+                <tr className="bg-slate-50 font-bold">
+                  <td className="px-3 py-2 sticky left-0 bg-slate-50" colSpan={2}>TOTAL</td>
+                  {MONTHS.map(m => <td key={m} className="px-2 py-2 text-right text-danger">{formatRp(costTotals[m] || 0)}</td>)}
+                  <td className="px-2 py-2 text-right text-danger">{formatRp(annualCost)}</td>
                   <td />
                 </tr>
               </tbody>
@@ -191,7 +196,7 @@ export default function ForecastingPage() {
             {DIVISI.map(d => <option key={d}>{d}</option>)}
           </FormSelect>
         </FormGroup>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
+        <div className="grid grid-cols-4 gap-2.5">
           {MONTHS.map((m, i) => (
             <FormGroup key={m} label={BULAN[i]}>
               <FormInput type="number" value={form[m] || 0} onChange={e => setForm(f => ({ ...f, [m]: e.target.value }))} />
@@ -203,7 +208,7 @@ export default function ForecastingPage() {
 
       {/* Modal: Cost */}
       <Modal open={modal === 'cost'} onClose={() => setModal(null)} title={editId ? 'Edit Cost' : '+ Tambah Cost'} maxWidth={760}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Kategori"><FormInput value={form.kategori || ''} onChange={e => setForm(f => ({ ...f, kategori: e.target.value }))} /></FormGroup>
           <FormGroup label="Tipe">
             <FormSelect value={form.tipe || 'Fixed'} onChange={e => setForm(f => ({ ...f, tipe: e.target.value }))}>
@@ -211,7 +216,7 @@ export default function ForecastingPage() {
             </FormSelect>
           </FormGroup>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
+        <div className="grid grid-cols-4 gap-2.5">
           {MONTHS.map((m, i) => (
             <FormGroup key={m} label={BULAN[i]}>
               <FormInput type="number" value={form[m] || 0} onChange={e => setForm(f => ({ ...f, [m]: e.target.value }))} />

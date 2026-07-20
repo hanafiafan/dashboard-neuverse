@@ -205,3 +205,4 @@ neuverse-dashboard/
 - **Nama divisi:** Edit `DIVISI` di `src/lib/utils.ts`
 - **Lead scoring formula:** Edit fungsi `scoreLead()` di `src/lib/utils.ts`
 - **Saldo awal kas:** Set via UI di modul Finance → input "Saldo Awal Kas"
+

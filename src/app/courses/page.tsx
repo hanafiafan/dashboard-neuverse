@@ -10,6 +10,7 @@ import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
 import Tag from '@/components/ui/Tag'
 import { COURSE_STATUS, KELAS_STATUS } from '@/lib/utils'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
+import { School, Laptop, BookOpenCheck } from 'lucide-react'
 
 export default function CoursesPage() {
   const confirm = useConfirm()
@@ -97,7 +98,7 @@ export default function CoursesPage() {
       />
 
       {tab === 'offline' && (
-        <Card icon="🏫" title="Offline Batch" actions={
+        <Card icon={<School size={16} />} title="Offline Batch" actions={
           <button className="btn btn-primary btn-sm" onClick={() => { setForm({ status: 'Pipeline' }); setEditId(null); setModal('offline') }}>+ Tambah Batch</button>
         }>
           <DataTable columns={batchCols}><BatchRows data={offline} table="batch_offline" /></DataTable>
@@ -105,7 +106,7 @@ export default function CoursesPage() {
       )}
 
       {tab === 'online' && (
-        <Card icon="💻" title="Online Batch" actions={
+        <Card icon={<Laptop size={16} />} title="Online Batch" actions={
           <button className="btn btn-primary btn-sm" onClick={() => { setForm({ status: 'Pipeline' }); setEditId(null); setModal('online') }}>+ Tambah Batch</button>
         }>
           <DataTable columns={batchCols}><BatchRows data={online} table="batch_online" /></DataTable>
@@ -113,7 +114,7 @@ export default function CoursesPage() {
       )}
 
       {tab === 'kelas' && (
-        <Card icon="📖" title="Kelas Aktif & Modul" actions={
+        <Card icon={<BookOpenCheck size={16} />} title="Kelas Aktif & Modul" actions={
           <button className="btn btn-primary btn-sm" onClick={() => { setForm({ status: 'Baru', progress: 0 }); setEditId(null); setModal('kelas') }}>+ Tambah Kelas</button>
         }>
           <DataTable columns={[
@@ -125,8 +126,8 @@ export default function CoursesPage() {
               <tr key={k.id}>
                 <Td>{k.nama}</Td><Td>{k.kategori}</Td><Td>{k.modul}</Td><Td>{k.peserta}</Td>
                 <Td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div className="progress-bar" style={{ width: 80 }}>
+                  <div className="flex items-center gap-2">
+                    <div className="progress-bar w-20">
                       <div className="progress-fill fill-success" style={{ width: Math.min(100, k.progress) + '%' }} />
                     </div>
                     <span>{k.progress}%</span>
@@ -144,11 +145,11 @@ export default function CoursesPage() {
       {(modal === 'offline' || modal === 'online') && (
         <Modal open={true} onClose={() => setModal(null)} title={editId ? 'Edit Batch' : '+ Tambah Batch'}>
           <FormGroup label="Nama Batch"><FormInput value={form.nama || ''} onChange={e => setForm(f => ({ ...f, nama: e.target.value }))} /></FormGroup>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="grid grid-cols-2 gap-3">
             <FormGroup label="Tanggal"><FormInput type="date" value={form.tanggal || ''} onChange={e => setForm(f => ({ ...f, tanggal: e.target.value }))} /></FormGroup>
             <FormGroup label={modal === 'online' ? 'Platform' : 'Tempat'}><FormInput value={form.tempat || ''} onChange={e => setForm(f => ({ ...f, tempat: e.target.value }))} /></FormGroup>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="grid grid-cols-2 gap-3">
             <FormGroup label="Trainer"><FormInput value={form.trainer || ''} onChange={e => setForm(f => ({ ...f, trainer: e.target.value }))} /></FormGroup>
             <FormGroup label="Peserta"><FormInput type="number" value={form.peserta || 0} onChange={e => setForm(f => ({ ...f, peserta: e.target.value }))} /></FormGroup>
           </div>
@@ -161,7 +162,7 @@ export default function CoursesPage() {
       <Modal open={modal === 'kelas'} onClose={() => setModal(null)} title={editId ? 'Edit Kelas' : '+ Tambah Kelas'}>
         <FormGroup label="Nama Kelas"><FormInput value={form.nama || ''} onChange={e => setForm(f => ({ ...f, nama: e.target.value }))} /></FormGroup>
         <FormGroup label="Kategori"><FormInput value={form.kategori || ''} onChange={e => setForm(f => ({ ...f, kategori: e.target.value }))} /></FormGroup>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-3 gap-3">
           <FormGroup label="Modul"><FormInput type="number" value={form.modul || 0} onChange={e => setForm(f => ({ ...f, modul: e.target.value }))} /></FormGroup>
           <FormGroup label="Peserta"><FormInput type="number" value={form.peserta || 0} onChange={e => setForm(f => ({ ...f, peserta: e.target.value }))} /></FormGroup>
           <FormGroup label="Progress %"><FormInput type="number" value={form.progress || 0} onChange={e => setForm(f => ({ ...f, progress: e.target.value }))} /></FormGroup>

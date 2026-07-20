@@ -11,6 +11,7 @@ import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
 import Tag from '@/components/ui/Tag'
 import { formatRp, todayStr, scoreLead, tempLead, LEAD_CH, LEAD_STAGE, FUNNEL_STAGE, PLATFORM, CNT_STATUS } from '@/lib/utils'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
+import { Target, NotebookPen, Flame, CloudSun, Snowflake, Filter, Radio, Users, BarChart3 } from 'lucide-react'
 
 export default function MarketingPage() {
   const confirm = useConfirm()
@@ -88,9 +89,9 @@ export default function MarketingPage() {
     <div>
       <InnerTabs
         tabs={[
-          { key: 'leads', label: '🎯 Leads & Scoring' },
-          { key: 'funnel', label: '🔽 Funnel & Konversi' },
-          { key: 'content', label: '📝 Konten TOFU/MOFU/BOFU' },
+          { key: 'leads', label: <span className="inline-flex items-center gap-1.5"><Target size={14} /> Leads & Scoring</span> },
+          { key: 'funnel', label: <span className="inline-flex items-center gap-1.5"><Filter size={14} /> Funnel & Konversi</span> },
+          { key: 'content', label: <span className="inline-flex items-center gap-1.5"><NotebookPen size={14} /> Konten TOFU/MOFU/BOFU</span> },
         ]}
         active={tab}
         onTab={setTab}
@@ -99,14 +100,14 @@ export default function MarketingPage() {
       {/* ───────── LEADS TAB ───────── */}
       {tab === 'leads' && (
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 16 }}>
+          <div className="grid grid-cols-4 gap-3.5 mb-4">
             <StatCard label="Total Leads" value={String(leads.length)} sub="Semua lead aktif" variant="blue" />
-            <StatCard label="🔥 Hot" value={String(hot)} sub="Score ≥ 70" accentColor="var(--danger)" />
-            <StatCard label="🌤 Warm" value={String(warm)} sub="Score 40–69" accentColor="var(--gold)" />
-            <StatCard label="❄️ Cold" value={String(cold)} sub="Score < 40" />
+            <StatCard label="Hot" value={String(hot)} sub="Score ≥ 70" accentColor="var(--danger)" icon={<Flame size={16} className="text-danger" />} />
+            <StatCard label="Warm" value={String(warm)} sub="Score 40–69" accentColor="var(--warning)" icon={<CloudSun size={16} className="text-warning" />} />
+            <StatCard label="Cold" value={String(cold)} sub="Score < 40" icon={<Snowflake size={16} className="text-muted" />} />
           </div>
 
-          <Card icon="👥" title="Daftar Lead & Lead Score" actions={
+          <Card icon={<Users size={16} />} title="Daftar Lead & Lead Score" actions={
             <button className="btn btn-primary btn-sm" onClick={() => { setForm({ channel: LEAD_CH[0], stage: LEAD_STAGE[0], last_interaction: todayStr() }); setEditId(null); setModal('lead') }}>+ Tambah Lead</button>
           }>
             <DataTable columns={[
@@ -124,7 +125,7 @@ export default function MarketingPage() {
                     <Td><Tag value={l.stage} /></Td>
                     <Td>{l.last_interaction}</Td>
                     <Td>
-                      <span style={{ fontWeight: 700, color: temp === 'Hot' ? 'var(--danger)' : temp === 'Warm' ? 'var(--gold)' : 'var(--muted)', fontSize: '1.05em' }}>
+                      <span className={`font-bold text-[1.05em] ${temp === 'Hot' ? 'text-danger' : temp === 'Warm' ? 'text-warning' : 'text-muted'}`}>
                         {score}
                       </span>
                     </Td>
@@ -142,7 +143,7 @@ export default function MarketingPage() {
             </DataTable>
           </Card>
 
-          <Card icon="📡" title="Cost per Channel & CPL" actions={
+          <Card icon={<Radio size={16} />} title="Cost per Channel & CPL" actions={
             <button className="btn btn-outline btn-sm" onClick={() => { setForm({ channel: LEAD_CH[0] }); setEditId(null); setModal('channel') }}>+ Tambah Channel</button>
           }>
             <DataTable columns={[{ key: 'ch', label: 'Channel' }, { key: 'biaya', label: 'Biaya (Rp)' }, { key: 'leads', label: 'Leads' }, { key: 'cpl', label: 'CPL' }, { key: 'ak', label: 'Aksi' }]}>
@@ -153,7 +154,7 @@ export default function MarketingPage() {
                     <Td><strong>{c.channel}</strong></Td>
                     <Td>{formatRp(Number(c.biaya))}</Td>
                     <Td>{c.leads_count}</Td>
-                    <Td style={{ fontWeight: 700 }}>{c.leads_count > 0 ? formatRp(cpl) : '-'}</Td>
+                    <Td><span className="font-bold">{c.leads_count > 0 ? formatRp(cpl) : '-'}</span></Td>
                     <ActionButtons
                       onEdit={() => { setForm(c as any); setEditId(c.id); setModal('channel') }}
                       onDelete={() => delRow('channel_cost', c.id)}
@@ -169,13 +170,13 @@ export default function MarketingPage() {
       {/* ───────── FUNNEL TAB ───────── */}
       {tab === 'funnel' && (
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 14, marginBottom: 16 }}>
+          <div className="grid grid-cols-5 gap-3.5 mb-4">
             {FUNNEL_STAGE.map(s => (
-              <div key={s} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 14px', textAlign: 'center' }}>
-                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--accent)' }}>{funnel[s] || 0}</div>
-                <div style={{ fontSize: '0.75rem', fontWeight: 600, marginTop: 4 }}>{s}</div>
+              <div key={s} className="bg-white border border-border rounded-xl py-4 px-3.5 text-center">
+                <div className="text-[1.6rem] font-extrabold text-accent">{funnel[s] || 0}</div>
+                <div className="text-xs font-semibold mt-1">{s}</div>
                 {FUNNEL_STAGE.indexOf(s) > 0 && funnel[FUNNEL_STAGE[FUNNEL_STAGE.indexOf(s) - 1]] > 0 && (
-                  <div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginTop: 2 }}>
+                  <div className="text-[0.7rem] text-muted mt-0.5">
                     {Math.round((funnel[s] / funnel[FUNNEL_STAGE[FUNNEL_STAGE.indexOf(s) - 1]]) * 100)}% konversi
                   </div>
                 )}
@@ -183,7 +184,7 @@ export default function MarketingPage() {
             ))}
           </div>
 
-          <Card icon="📊" title="Distribusi Leads per Channel">
+          <Card icon={<BarChart3 size={16} />} title="Distribusi Leads per Channel">
             <DataTable columns={[{ key: 'ch', label: 'Channel' }, ...FUNNEL_STAGE.map(s => ({ key: s, label: s })), { key: 'total', label: 'Total' }]}>
               {LEAD_CH.map(ch => {
                 const chLeads = leads.filter(l => l.channel === ch)
@@ -203,7 +204,7 @@ export default function MarketingPage() {
 
       {/* ───────── CONTENT TAB ───────── */}
       {tab === 'content' && (
-        <Card icon="📝" title="Content Tracking TOFU/MOFU/BOFU" actions={
+        <Card icon={<NotebookPen size={16} />} title="Content Tracking TOFU/MOFU/BOFU" actions={
           <button className="btn btn-primary btn-sm" onClick={() => { setForm({ platform: PLATFORM[0], stage: FUNNEL_STAGE[0], status: CNT_STATUS[0] }); setEditId(null); setModal('content') }}>+ Tambah Konten</button>
         }>
           <DataTable columns={[
@@ -219,7 +220,7 @@ export default function MarketingPage() {
                 <Td><span className={`tag ${c.stage.startsWith('TOFU') ? 'tag-info' : c.stage.startsWith('MOFU') ? 'tag-warning' : 'tag-success'}`}>{c.stage}</span></Td>
                 <Td>{c.views.toLocaleString('id-ID')}</Td>
                 <Td>{c.engagement.toLocaleString('id-ID')}</Td>
-                <Td style={{ fontWeight: 700, color: 'var(--accent)' }}>{c.leads_gen}</Td>
+                <Td><span className="font-bold text-accent">{c.leads_gen}</span></Td>
                 <Td><Tag value={c.status} /></Td>
                 <ActionButtons
                   onEdit={() => { setForm(c as any); setEditId(c.id); setModal('content') }}
@@ -234,7 +235,7 @@ export default function MarketingPage() {
       {/* ───────── MODALS ───────── */}
       <Modal open={modal === 'lead'} onClose={() => setModal(null)} title={editId ? 'Edit Lead' : '+ Tambah Lead'}>
         <FormGroup label="Nama Lead"><FormInput value={form.nama || ''} onChange={e => setForm(f => ({ ...f, nama: e.target.value }))} /></FormGroup>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Channel">
             <FormSelect value={form.channel || ''} onChange={e => setForm(f => ({ ...f, channel: e.target.value }))}>
               {LEAD_CH.map(o => <option key={o}>{o}</option>)}
@@ -257,7 +258,7 @@ export default function MarketingPage() {
             {LEAD_CH.map(o => <option key={o}>{o}</option>)}
           </FormSelect>
         </FormGroup>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Biaya (Rp)"><FormInput type="number" value={form.biaya || 0} onChange={e => setForm(f => ({ ...f, biaya: e.target.value }))} /></FormGroup>
           <FormGroup label="Jumlah Leads"><FormInput type="number" value={form.leads_count || 0} onChange={e => setForm(f => ({ ...f, leads_count: e.target.value }))} /></FormGroup>
         </div>
@@ -266,7 +267,7 @@ export default function MarketingPage() {
 
       <Modal open={modal === 'content'} onClose={() => setModal(null)} title={editId ? 'Edit Konten' : '+ Tambah Konten'}>
         <FormGroup label="Judul Konten"><FormInput value={form.judul || ''} onChange={e => setForm(f => ({ ...f, judul: e.target.value }))} /></FormGroup>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Platform">
             <FormSelect value={form.platform || ''} onChange={e => setForm(f => ({ ...f, platform: e.target.value }))}>
               {PLATFORM.map(o => <option key={o}>{o}</option>)}
@@ -278,7 +279,7 @@ export default function MarketingPage() {
             </FormSelect>
           </FormGroup>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-3 gap-3">
           <FormGroup label="Views"><FormInput type="number" value={form.views || 0} onChange={e => setForm(f => ({ ...f, views: e.target.value }))} /></FormGroup>
           <FormGroup label="Engagement"><FormInput type="number" value={form.engagement || 0} onChange={e => setForm(f => ({ ...f, engagement: e.target.value }))} /></FormGroup>
           <FormGroup label="Leads Gen"><FormInput type="number" value={form.leads_gen || 0} onChange={e => setForm(f => ({ ...f, leads_gen: e.target.value }))} /></FormGroup>

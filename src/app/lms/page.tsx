@@ -9,6 +9,7 @@ import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
 import Tag from '@/components/ui/Tag'
 import { LMS_FASE_STATUS, LMS_PRIORITAS, TRAINER_STATUS } from '@/lib/utils'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
+import { Laptop, AlertCircle, GraduationCap } from 'lucide-react'
 
 export default function LMSPage() {
   const confirm = useConfirm()
@@ -66,7 +67,7 @@ export default function LMSPage() {
 
   return (
     <div>
-      <Card icon="📊" title="Progress LMS per Fase" actions={
+      <Card icon={<Laptop size={16} />} title="Progress LMS per Fase" actions={
         <button className="btn btn-primary btn-sm" onClick={() => { setForm({ progress: 0, status: LMS_FASE_STATUS[0] }); setEditId(null); setModal('fase') }}>+ Tambah Fase</button>
       }>
         <DataTable columns={[
@@ -77,8 +78,8 @@ export default function LMSPage() {
             <tr key={r.id}>
               <Td>{r.fase}</Td><Td>{r.deskripsi}</Td><Td>{r.target}</Td>
               <Td>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div className="progress-bar" style={{ width: 80 }}>
+                <div className="flex items-center gap-2">
+                  <div className="progress-bar w-20">
                     <div className="progress-fill fill-blue" style={{ width: Math.min(100, r.progress) + '%' }} />
                   </div>
                   <span>{r.progress}%</span>
@@ -91,7 +92,7 @@ export default function LMSPage() {
         </DataTable>
       </Card>
 
-      <Card icon="⚠️" title="Kendala & Prioritas" actions={
+      <Card icon={<AlertCircle size={16} />} title="Kendala & Prioritas" actions={
         <button className="btn btn-primary btn-sm" onClick={() => { setForm({ prioritas: LMS_PRIORITAS[0], status: 'Antre' }); setEditId(null); setModal('kendala') }}>+ Tambah Kendala</button>
       }>
         <DataTable columns={[
@@ -108,7 +109,7 @@ export default function LMSPage() {
         </DataTable>
       </Card>
 
-      <Card icon="👨‍🏫" title="List Trainer & Kelengkapan" actions={
+      <Card icon={<GraduationCap size={16} />} title="List Trainer & Kelengkapan" actions={
         <button className="btn btn-primary btn-sm" onClick={() => { setForm({ status: TRAINER_STATUS[0] }); setEditId(null); setModal('trainer') }}>+ Tambah Trainer</button>
       }>
         <DataTable columns={[
@@ -129,7 +130,7 @@ export default function LMSPage() {
       <Modal open={modal === 'fase'} onClose={() => setModal(null)} title={editId ? 'Edit Fase' : '+ Tambah Fase'}>
         <FormGroup label="Fase"><FormInput value={form.fase || ''} onChange={e => setForm(f => ({ ...f, fase: e.target.value }))} /></FormGroup>
         <FormGroup label="Deskripsi"><FormInput value={form.deskripsi || ''} onChange={e => setForm(f => ({ ...f, deskripsi: e.target.value }))} /></FormGroup>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Target"><FormInput value={form.target || ''} onChange={e => setForm(f => ({ ...f, target: e.target.value }))} /></FormGroup>
           <FormGroup label="Progress %"><FormInput type="number" value={form.progress || 0} onChange={e => setForm(f => ({ ...f, progress: e.target.value }))} /></FormGroup>
         </div>
@@ -139,11 +140,11 @@ export default function LMSPage() {
 
       <Modal open={modal === 'kendala'} onClose={() => setModal(null)} title={editId ? 'Edit Kendala' : '+ Tambah Kendala'}>
         <FormGroup label="Kendala"><FormInput value={form.kendala || ''} onChange={e => setForm(f => ({ ...f, kendala: e.target.value }))} /></FormGroup>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Prioritas"><FormSelect value={form.prioritas || ''} onChange={e => setForm(f => ({ ...f, prioritas: e.target.value }))}>{LMS_PRIORITAS.map(o => <option key={o}>{o}</option>)}</FormSelect></FormGroup>
           <FormGroup label="PIC"><FormInput value={form.pic || ''} onChange={e => setForm(f => ({ ...f, pic: e.target.value }))} /></FormGroup>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Deadline"><FormInput type="date" value={form.deadline || ''} onChange={e => setForm(f => ({ ...f, deadline: e.target.value }))} /></FormGroup>
           <FormGroup label="Status"><FormSelect value={form.status || ''} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}><option>Antre</option><option>Proses</option><option>Selesai</option></FormSelect></FormGroup>
         </div>
@@ -152,11 +153,11 @@ export default function LMSPage() {
 
       <Modal open={modal === 'trainer'} onClose={() => setModal(null)} title={editId ? 'Edit Trainer' : '+ Tambah Trainer'}>
         <FormGroup label="Nama Trainer"><FormInput value={form.nama || ''} onChange={e => setForm(f => ({ ...f, nama: e.target.value }))} /></FormGroup>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Bidang/Keahlian"><FormInput value={form.bidang || ''} onChange={e => setForm(f => ({ ...f, bidang: e.target.value }))} /></FormGroup>
           <FormGroup label="Email"><FormInput type="email" value={form.email || ''} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} /></FormGroup>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="No. HP"><FormInput value={form.hp || ''} onChange={e => setForm(f => ({ ...f, hp: e.target.value }))} /></FormGroup>
           <FormGroup label="Sertifikasi"><FormInput value={form.sertifikasi || ''} onChange={e => setForm(f => ({ ...f, sertifikasi: e.target.value }))} /></FormGroup>
         </div>

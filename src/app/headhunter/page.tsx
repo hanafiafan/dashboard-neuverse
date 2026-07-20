@@ -11,6 +11,7 @@ import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
 import Tag from '@/components/ui/Tag'
 import { KATEGORI_HH, TAHAP_HH, PRIORITAS, alertLevel, todayStr } from '@/lib/utils'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
+import { AlertTriangle, BarChart3, Factory, ClipboardList, FileText, StickyNote } from 'lucide-react'
 
 export default function HeadhunterPage() {
   const confirm = useConfirm()
@@ -117,7 +118,7 @@ export default function HeadhunterPage() {
     if (r.tahap === 'Selesai') entMap[k].penuh++
   })
 
-  if (loading) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>Memuat data...</div>
+  if (loading) return <div className="p-10 text-center text-muted">Memuat data...</div>
 
   return (
     <div>
@@ -134,13 +135,13 @@ export default function HeadhunterPage() {
 
       {tab === 'dashboard' && (
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 16 }}>
+          <div className="grid grid-cols-4 gap-3.5 mb-4">
             <StatCard label="Total Kandidat / Posisi" value={total} sub="Semua entitas" variant="accent" />
             <StatCard label="Posisi Aktif" value={aktif} sub="Sedang berjalan" variant="blue" />
             <StatCard label="Terpenuhi" value={terp} sub="Posisi closed" variant="gold" />
             <StatCard label="% Keberhasilan" value={pct + '%'} sub="Success rate" accentColor="var(--success)" />
           </div>
-          <Card icon="📊" title="Distribusi Headhunter Services">
+          <Card icon={<BarChart3 size={16} />} title="Distribusi Headhunter Services">
             <DataTable columns={[
               { key: 'kat', label: 'Kategori' }, { key: 'jml', label: 'Jumlah Posisi' },
               { key: 'trp', label: 'Terpenuhi' }, { key: 'pct', label: '%' }, { key: 'st', label: 'Status' },
@@ -163,7 +164,7 @@ export default function HeadhunterPage() {
       )}
 
       {tab === 'pemenuhan' && (
-        <Card icon="🏭" title="Pemenuhan Per-Entitas">
+        <Card icon={<Factory size={16} />} title="Pemenuhan Per-Entitas">
           <DataTable columns={[
             { key: 'entitas', label: 'Nama Entitas' }, { key: 'kat', label: 'Kategori' },
             { key: 'butuh', label: 'Kebutuhan' }, { key: 'penuh', label: 'Terpenuhi' },
@@ -188,7 +189,7 @@ export default function HeadhunterPage() {
       )}
 
       {tab === 'kritis' && (
-        <Card icon="🚨" title="Posisi Kritis" actions={
+        <Card icon={<AlertTriangle size={16} />} title="Posisi Kritis" actions={
           <button className="btn btn-primary btn-sm" onClick={() => { setForm({}); setEditIdx(null); setModal('kritis') }}>+ Tambah Posisi</button>
         }>
           <DataTable columns={[
@@ -215,7 +216,7 @@ export default function HeadhunterPage() {
       )}
 
       {tab === 'rekrutmen' && (
-        <Card icon="📋" title="Progres Rekrutmen" actions={
+        <Card icon={<ClipboardList size={16} />} title="Progres Rekrutmen" actions={
           <button className="btn btn-primary btn-sm" onClick={() => { setForm({}); setEditIdx(null); setModal('rekrutmen') }}>+ Tambah</button>
         }>
           <DataTable columns={[
@@ -230,11 +231,11 @@ export default function HeadhunterPage() {
                 <Td>{r.entitas}</Td>
                 <Td><Tag value={r.kategori} /></Td>
                 <Td>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <div className="flex flex-col gap-0.5">
                     <span>{r.karyawan || '-'}</span>
                     {r.file_ol ? (
-                      <a href={r.file_ol} target="_blank" rel="noreferrer" style={{ color: 'var(--accent2)', fontSize: '0.72rem', textDecoration: 'underline' }}>
-                        📄 File OL
+                      <a href={r.file_ol} target="_blank" rel="noreferrer" className="text-info text-[0.72rem] underline inline-flex items-center gap-1 w-fit">
+                        <FileText size={12} /> File OL
                       </a>
                     ) : null}
                   </div>
@@ -245,11 +246,11 @@ export default function HeadhunterPage() {
                 <Td>{r.lokasi || '-'}</Td>
                 <Td>{r.media || '-'}</Td>
                 <Td>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <div className="flex flex-col gap-0.5">
                     <strong>{r.pct}%</strong>
                     {r.catatan ? (
-                      <span style={{ fontSize: '0.72rem', color: 'var(--muted)', maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={r.catatan}>
-                        📝 {r.catatan}
+                      <span className="inline-flex items-center gap-1 text-[0.72rem] text-muted max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap" title={r.catatan}>
+                        <StickyNote size={11} className="shrink-0" /> {r.catatan}
                       </span>
                     ) : null}
                   </div>
@@ -266,7 +267,7 @@ export default function HeadhunterPage() {
       <Modal open={modal === 'rekrutmen'} onClose={() => setModal(null)} title={editIdx !== null ? 'Edit Rekrutmen' : '+ Tambah Rekrutmen'}>
         <FormGroup label="Posisi"><FormInput value={form.posisi || ''} onChange={e => setForm(f => ({ ...f, posisi: e.target.value }))} /></FormGroup>
         <FormGroup label="Entitas"><FormInput value={form.entitas || ''} onChange={e => setForm(f => ({ ...f, entitas: e.target.value }))} /></FormGroup>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Kategori">
             <FormSelect value={form.kategori || ''} onChange={e => setForm(f => ({ ...f, kategori: e.target.value }))}>
               {KATEGORI_HH.map(o => <option key={o}>{o}</option>)}
@@ -278,15 +279,15 @@ export default function HeadhunterPage() {
             </FormSelect>
           </FormGroup>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Tgl Mulai"><FormInput type="date" value={form.mulai || ''} onChange={e => setForm(f => ({ ...f, mulai: e.target.value }))} /></FormGroup>
           <FormGroup label="Tgl Selesai"><FormInput type="date" value={form.selesai || ''} onChange={e => setForm(f => ({ ...f, selesai: e.target.value }))} /></FormGroup>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Karyawan Hired"><FormInput value={form.karyawan || ''} onChange={e => setForm(f => ({ ...f, karyawan: e.target.value }))} /></FormGroup>
           <FormGroup label="Media / Job Portal"><FormInput value={form.media || ''} onChange={e => setForm(f => ({ ...f, media: e.target.value }))} /></FormGroup>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Lokasi Penempatan"><FormInput value={form.lokasi || ''} onChange={e => setForm(f => ({ ...f, lokasi: e.target.value }))} /></FormGroup>
           <FormGroup label="Deadline Posisi"><FormInput type="date" value={form.deadline || ''} onChange={e => setForm(f => ({ ...f, deadline: e.target.value }))} /></FormGroup>
         </div>
@@ -303,7 +304,7 @@ export default function HeadhunterPage() {
       <Modal open={modal === 'kritis'} onClose={() => setModal(null)} title={editIdx !== null ? 'Edit Posisi Kritis' : '+ Tambah Posisi Kritis'}>
         <FormGroup label="Posisi"><FormInput value={form.posisi || ''} onChange={e => setForm(f => ({ ...f, posisi: e.target.value }))} /></FormGroup>
         <FormGroup label="Entitas"><FormInput value={form.entitas || ''} onChange={e => setForm(f => ({ ...f, entitas: e.target.value }))} /></FormGroup>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Prioritas">
             <FormSelect value={form.prioritas || ''} onChange={e => setForm(f => ({ ...f, prioritas: e.target.value }))}>
               {PRIORITAS.map(o => <option key={o}>{o}</option>)}

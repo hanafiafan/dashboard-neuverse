@@ -11,6 +11,7 @@ import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
 import Tag from '@/components/ui/Tag'
 import { CAP_STATUS, LOAD_STATUS } from '@/lib/utils'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
+import { Dumbbell, Briefcase } from 'lucide-react'
 
 export default function ResourcePage() {
   const confirm = useConfirm()
@@ -78,14 +79,14 @@ export default function ResourcePage() {
   const avgStaffUtil = loads.length ? Math.round(loads.reduce((s, l) => s + (l.max_jam > 0 ? (l.current_jam / l.max_jam) * 100 : 0), 0) / loads.length) : 0
 
   function utilColor(pct: number) {
-    if (pct >= 100) return 'var(--danger)'
-    if (pct >= 80) return 'var(--gold)'
-    return 'var(--success)'
+    if (pct >= 100) return { fill: 'fill-danger', text: 'text-danger' }
+    if (pct >= 80) return { fill: 'fill-warning', text: 'text-warning' }
+    return { fill: 'fill-success', text: 'text-success' }
   }
 
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 16 }}>
+      <div className="grid grid-cols-4 gap-3.5 mb-4">
         <StatCard label="Trainer Overload" value={String(overloadedTrainers)} sub="Max kapasitas tercapai" accentColor={overloadedTrainers > 0 ? 'var(--danger)' : 'var(--success)'} />
         <StatCard label="Rata-rata Utilisasi Trainer" value={`${avgTrainerUtil}%`} sub="dari kapasitas max" variant="blue" />
         <StatCard label="Staff Overload" value={String(overloadedStaff)} sub="Jam kerja penuh" accentColor={overloadedStaff > 0 ? 'var(--danger)' : 'var(--success)'} />
@@ -94,8 +95,8 @@ export default function ResourcePage() {
 
       <InnerTabs
         tabs={[
-          { key: 'trainer', label: '🏋️ Trainer Capacity' },
-          { key: 'staff', label: '👔 Staff Workload' },
+          { key: 'trainer', label: 'Trainer Capacity' },
+          { key: 'staff', label: 'Staff Workload' },
         ]}
         active={tab}
         onTab={setTab}
@@ -103,7 +104,7 @@ export default function ResourcePage() {
 
       {/* ───────── TRAINER TAB ───────── */}
       {tab === 'trainer' && (
-        <Card icon="🏋️" title="Kapasitas Trainer" actions={
+        <Card icon={<Dumbbell size={16} />} title="Kapasitas Trainer" actions={
           <button className="btn btn-primary btn-sm" onClick={() => { setForm({ status: CAP_STATUS[0] }); setEditId(null); setModal('cap') }}>+ Tambah Trainer</button>
         }>
           <DataTable columns={[
@@ -117,17 +118,18 @@ export default function ResourcePage() {
           ]}>
             {caps.map(c => {
               const pct = c.max_batch > 0 ? Math.round((c.current_batch / c.max_batch) * 100) : 0
+              const uc = utilColor(pct)
               return (
                 <tr key={c.id} className={pct >= 100 ? 'row-alert' : pct >= 80 ? 'row-warn' : ''}>
                   <Td><strong>{c.nama}</strong></Td>
                   <Td>{c.max_batch}</Td>
                   <Td>{c.current_batch}</Td>
                   <Td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div className="progress-bar" style={{ width: 80 }}>
-                        <div className="progress-fill" style={{ width: Math.min(100, pct) + '%', background: utilColor(pct) }} />
+                    <div className="flex items-center gap-2">
+                      <div className="progress-bar w-20">
+                        <div className={`progress-fill ${uc.fill}`} style={{ width: Math.min(100, pct) + '%' }} />
                       </div>
-                      <span style={{ fontWeight: 700, color: utilColor(pct) }}>{pct}%</span>
+                      <span className={`font-bold ${uc.text}`}>{pct}%</span>
                     </div>
                   </Td>
                   <Td><Tag value={c.status} /></Td>
@@ -145,7 +147,7 @@ export default function ResourcePage() {
 
       {/* ───────── STAFF TAB ───────── */}
       {tab === 'staff' && (
-        <Card icon="👔" title="Staff Workload Extended Matrix" actions={
+        <Card icon={<Briefcase size={16} />} title="Staff Workload Extended Matrix" actions={
           <button className="btn btn-primary btn-sm" onClick={() => { setForm({ status: LOAD_STATUS[0] }); setEditId(null); setModal('load') }}>+ Tambah Staff</button>
         }>
           <DataTable columns={[
@@ -160,6 +162,7 @@ export default function ResourcePage() {
           ]}>
             {loads.map(l => {
               const pct = l.max_jam > 0 ? Math.round((l.current_jam / l.max_jam) * 100) : 0
+              const uc = utilColor(pct)
               return (
                 <tr key={l.id} className={pct >= 100 ? 'row-alert' : pct >= 80 ? 'row-warn' : ''}>
                   <Td><strong>{l.nama}</strong></Td>
@@ -167,11 +170,11 @@ export default function ResourcePage() {
                   <Td>{l.max_jam} jam</Td>
                   <Td>{l.current_jam} jam</Td>
                   <Td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div className="progress-bar" style={{ width: 80 }}>
-                        <div className="progress-fill" style={{ width: Math.min(100, pct) + '%', background: utilColor(pct) }} />
+                    <div className="flex items-center gap-2">
+                      <div className="progress-bar w-20">
+                        <div className={`progress-fill ${uc.fill}`} style={{ width: Math.min(100, pct) + '%' }} />
                       </div>
-                      <span style={{ fontWeight: 700, color: utilColor(pct) }}>{pct}%</span>
+                      <span className={`font-bold ${uc.text}`}>{pct}%</span>
                     </div>
                   </Td>
                   <Td><Tag value={l.status} /></Td>
@@ -190,7 +193,7 @@ export default function ResourcePage() {
       {/* ───────── MODALS ───────── */}
       <Modal open={modal === 'cap'} onClose={() => setModal(null)} title={editId ? 'Edit Trainer' : '+ Tambah Trainer'}>
         <FormGroup label="Nama Trainer"><FormInput value={form.nama || ''} onChange={e => setForm(f => ({ ...f, nama: e.target.value }))} /></FormGroup>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Max Batch"><FormInput type="number" value={form.max_batch || 0} onChange={e => setForm(f => ({ ...f, max_batch: e.target.value }))} /></FormGroup>
           <FormGroup label="Batch Aktif Saat Ini"><FormInput type="number" value={form.current_batch || 0} onChange={e => setForm(f => ({ ...f, current_batch: e.target.value }))} /></FormGroup>
         </div>
@@ -204,11 +207,11 @@ export default function ResourcePage() {
       </Modal>
 
       <Modal open={modal === 'load'} onClose={() => setModal(null)} title={editId ? 'Edit Staff' : '+ Tambah Staff'}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Nama Staff"><FormInput value={form.nama || ''} onChange={e => setForm(f => ({ ...f, nama: e.target.value }))} /></FormGroup>
           <FormGroup label="Jabatan"><FormInput value={form.jabatan || ''} onChange={e => setForm(f => ({ ...f, jabatan: e.target.value }))} /></FormGroup>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Max Jam/Bulan"><FormInput type="number" value={form.max_jam || 0} onChange={e => setForm(f => ({ ...f, max_jam: e.target.value }))} /></FormGroup>
           <FormGroup label="Jam Aktif Saat Ini"><FormInput type="number" value={form.current_jam || 0} onChange={e => setForm(f => ({ ...f, current_jam: e.target.value }))} /></FormGroup>
         </div>

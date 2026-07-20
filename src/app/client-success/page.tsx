@@ -11,6 +11,7 @@ import DataTable, { Td, ActionButtons } from '@/components/ui/DataTable'
 import Tag from '@/components/ui/Tag'
 import { SENTIMEN, FB_STATUS, npsCat, todayStr } from '@/lib/utils'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
+import { BarChart3, MessageSquare, Smile, Meh, Frown } from 'lucide-react'
 
 export default function ClientSuccessPage() {
   const confirm = useConfirm()
@@ -78,7 +79,7 @@ export default function ClientSuccessPage() {
   const npsScore = total > 0 ? Math.round(((promoters - detractors) / total) * 100) : 0
   const avgScore = total > 0 ? (npsData.reduce((s, n) => s + n.skor, 0) / total).toFixed(1) : '-'
 
-  const npsColor = npsScore >= 50 ? 'var(--success)' : npsScore >= 0 ? 'var(--gold)' : 'var(--danger)'
+  const npsColor = npsScore >= 50 ? 'var(--success)' : npsScore >= 0 ? 'var(--warning)' : 'var(--danger)'
 
   // NPS gauge arc helper
   const gaugeAngle = Math.max(-90, Math.min(90, (npsScore / 100) * 90))
@@ -87,8 +88,8 @@ export default function ClientSuccessPage() {
     <div>
       <InnerTabs
         tabs={[
-          { key: 'nps', label: '⭐ NPS Score' },
-          { key: 'feedback', label: '💬 Feedback Log' },
+          { key: 'nps', label: 'NPS Score' },
+          { key: 'feedback', label: 'Feedback Log' },
         ]}
         active={tab}
         onTab={setTab}
@@ -98,10 +99,10 @@ export default function ClientSuccessPage() {
       {tab === 'nps' && (
         <div>
           {/* Gauge + stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 20, marginBottom: 16 }}>
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-5 mb-4">
             {/* Gauge */}
             <Card>
-              <div style={{ textAlign: 'center', padding: '16px 0' }}>
+              <div className="text-center py-4">
                 <svg viewBox="0 0 200 110" width="100%" style={{ maxWidth: 200, margin: '0 auto', display: 'block' }}>
                   {/* Background arc */}
                   <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#e5e7eb" strokeWidth="18" />
@@ -112,17 +113,27 @@ export default function ClientSuccessPage() {
                   <text x="100" y="90" textAnchor="middle" fontSize="28" fontWeight="800" fill={npsColor}>{npsScore}</text>
                   <text x="100" y="108" textAnchor="middle" fontSize="11" fill="#6b7280">NPS Score</text>
                 </svg>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 8, fontSize: '0.75rem' }}>
-                  <span style={{ color: 'var(--success)' }}>😊 {promoters} Promoter</span>
-                  <span style={{ color: 'var(--gold)' }}>😐 {passives} Passive</span>
-                  <span style={{ color: 'var(--danger)' }}>😞 {detractors} Detractor</span>
+                <div className="flex justify-center gap-4 mt-2 text-xs">
+                  <span className="text-success inline-flex items-center gap-1"><Smile size={14} /> {promoters} Promoter</span>
+                  <span className="text-warning inline-flex items-center gap-1"><Meh size={14} /> {passives} Passive</span>
+                  <span className="text-danger inline-flex items-center gap-1"><Frown size={14} /> {detractors} Detractor</span>
                 </div>
               </div>
             </Card>
 
             {/* Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignContent: 'start' }}>
-              <StatCard label="NPS Score" value={String(npsScore)} sub={npsScore >= 50 ? '🟢 Excellent' : npsScore >= 0 ? '🟡 Cukup' : '🔴 Perlu Perhatian'} accentColor={npsColor} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 content-start">
+              <StatCard
+                label="NPS Score"
+                value={String(npsScore)}
+                sub={
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: npsScore >= 50 ? 'var(--success)' : npsScore >= 0 ? 'var(--warning)' : 'var(--danger)' }} />
+                    {npsScore >= 50 ? 'Excellent' : npsScore >= 0 ? 'Cukup' : 'Perlu Perhatian'}
+                  </span>
+                }
+                accentColor={npsColor}
+              />
               <StatCard label="Rata-rata Skor" value={avgScore} sub="dari skala 0–10" variant="blue" />
               <StatCard label="Total Responden" value={String(total)} sub="Klien yang mengisi" />
               <StatCard label="Promoters" value={`${promoters} (${total > 0 ? Math.round((promoters / total) * 100) : 0}%)`} sub="Skor ≥ 9" variant="gold" />
@@ -130,7 +141,7 @@ export default function ClientSuccessPage() {
           </div>
 
           {/* NPS Table */}
-          <Card icon="📊" title="Data NPS per Klien" actions={
+          <Card icon={<BarChart3 size={16} />} title="Data NPS per Klien" actions={
             <button className="btn btn-primary btn-sm" onClick={() => { setForm({ skor: 8, tanggal: todayStr() }); setEditId(null); setModal('nps') }}>+ Tambah Data NPS</button>
           }>
             <DataTable columns={[
@@ -147,7 +158,9 @@ export default function ClientSuccessPage() {
                   <tr key={n.id}>
                     <Td><strong>{n.klien}</strong></Td>
                     <Td>
-                      <span style={{ fontWeight: 800, fontSize: '1.1em', color: cat === 'Promoter' ? 'var(--success)' : cat === 'Passive' ? 'var(--gold)' : 'var(--danger)' }}>
+                      <span
+                        className={`font-extrabold text-[1.1em] ${cat === 'Promoter' ? 'text-success' : cat === 'Passive' ? 'text-warning' : 'text-danger'}`}
+                      >
                         {n.skor}
                       </span>
                     </Td>
@@ -169,13 +182,13 @@ export default function ClientSuccessPage() {
       {/* ───────── FEEDBACK TAB ───────── */}
       {tab === 'feedback' && (
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14, marginBottom: 16 }}>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-4">
             <StatCard label="Total Feedback" value={String(feedback.length)} />
             <StatCard label="Positif" value={String(feedback.filter(f => f.sentimen === 'Positif').length)} variant="accent" />
             <StatCard label="Negatif" value={String(feedback.filter(f => f.sentimen === 'Negatif').length)} accentColor="var(--danger)" />
           </div>
 
-          <Card icon="💬" title="Feedback Log" actions={
+          <Card icon={<MessageSquare size={16} />} title="Feedback Log" actions={
             <button className="btn btn-primary btn-sm" onClick={() => { setForm({ sentimen: SENTIMEN[1], status: FB_STATUS[0] }); setEditId(null); setModal('fb') }}>+ Tambah Feedback</button>
           }>
             <DataTable columns={[
@@ -190,7 +203,7 @@ export default function ClientSuccessPage() {
                 <tr key={f.id}>
                   <Td><strong>{f.klien}</strong></Td>
                   <Td>{f.kategori}</Td>
-                  <Td style={{ maxWidth: 260 }}>{f.isi}</Td>
+                  <Td><div className="max-w-[260px]">{f.isi}</div></Td>
                   <Td>
                     <span className={`tag ${f.sentimen === 'Positif' ? 'tag-success' : f.sentimen === 'Negatif' ? 'tag-danger' : 'tag-warning'}`}>
                       {f.sentimen}
@@ -211,7 +224,7 @@ export default function ClientSuccessPage() {
       {/* ───────── MODALS ───────── */}
       <Modal open={modal === 'nps'} onClose={() => setModal(null)} title={editId ? 'Edit NPS' : '+ Tambah Data NPS'}>
         <FormGroup label="Nama Klien"><FormInput value={form.klien || ''} onChange={e => setForm(f => ({ ...f, klien: e.target.value }))} /></FormGroup>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Skor NPS (0–10)">
             <FormInput type="number" min={0} max={10} value={form.skor ?? 8} onChange={e => setForm(f => ({ ...f, skor: e.target.value }))} />
           </FormGroup>
@@ -222,12 +235,12 @@ export default function ClientSuccessPage() {
       </Modal>
 
       <Modal open={modal === 'fb'} onClose={() => setModal(null)} title={editId ? 'Edit Feedback' : '+ Tambah Feedback'}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Klien"><FormInput value={form.klien || ''} onChange={e => setForm(f => ({ ...f, klien: e.target.value }))} /></FormGroup>
           <FormGroup label="Kategori"><FormInput value={form.kategori || ''} onChange={e => setForm(f => ({ ...f, kategori: e.target.value }))} placeholder="mis: Kelas, Trainer, Admin..." /></FormGroup>
         </div>
         <FormGroup label="Isi Feedback"><FormInput value={form.isi || ''} onChange={e => setForm(f => ({ ...f, isi: e.target.value }))} /></FormGroup>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Sentimen">
             <FormSelect value={form.sentimen || SENTIMEN[1]} onChange={e => setForm(f => ({ ...f, sentimen: e.target.value }))}>
               {SENTIMEN.map(o => <option key={o}>{o}</option>)}
