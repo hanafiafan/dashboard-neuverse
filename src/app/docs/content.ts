@@ -21,18 +21,22 @@ export const ARSITEKTUR = {
   poin: [
     {
       judul: 'Alur data',
+      icon: 'Workflow',
       isi: 'Setiap halaman memanggil supabase.from("nama_tabel").select()/.insert()/.update()/.delete() langsung dari komponen client (\'use client\'). Tidak ada API route perantara — Supabase berperan sebagai backend sekaligus database.',
     },
     {
       judul: 'Struktur folder',
+      icon: 'FolderTree',
       isi: 'src/app/ berisi satu folder per modul (routing Next.js App Router). src/components/ui/ berisi komponen bersama (Card, Modal, DataTable, StatCard, Tag, Toast, Confirm) yang dipakai semua halaman. src/components/layout/ berisi Sidebar & Topbar. src/lib/utils.ts menyimpan konstanta pilihan dropdown dan rumus bersama (scoreLead, alertLevel, npsCat, dst). src/types/database.ts adalah definisi TypeScript yang mencerminkan skema Supabase.',
     },
     {
       judul: 'Keamanan & akses',
+      icon: 'Lock',
       isi: 'Dashboard ini TIDAK memiliki sistem login — ini keputusan yang disengaja untuk tool internal tim. Setiap tabel memiliki Row Level Security (RLS) aktif dengan policy "allow_all" (semua orang yang membuka link dashboard bisa baca & tulis data). Jangan bagikan link dashboard ke luar tim.',
     },
     {
       judul: 'Dokumen & lampiran',
+      icon: 'Link2',
       isi: 'Dashboard tidak menyimpan file yang di-upload langsung (tidak pakai Supabase Storage) — ini sengaja untuk menghemat kuota storage. Semua lampiran/bukti harus berupa link Google Drive, Docs, Sheets, Slides, atau Forms yang sudah diunggah ke Google Workspace terlebih dahulu.',
     },
   ],
@@ -41,18 +45,22 @@ export const ARSITEKTUR = {
 export const KONVENSI = [
   {
     judul: 'Link dokumen wajib Google Drive/Workspace',
+    icon: 'Link2',
     isi: 'Setiap field yang meminta "link bukti" atau "link dokumen" (misalnya Bukti Transaksi di Buku Kas) HARUS diawali https://drive.google.com/, https://docs.google.com/, https://sheets.google.com/, https://slides.google.com/, atau https://forms.google.com/. Link lain akan ditolak — baik oleh form maupun oleh database itu sendiri. Upload file ke Google Drive dulu, set akses "Anyone with the link", baru salin link-nya ke dashboard.',
   },
   {
     judul: 'Format tanggal',
+    icon: 'Calendar',
     isi: 'Semua input tanggal memakai date picker bawaan browser (format tampil mengikuti pengaturan regional perangkat, disimpan sebagai format standar YYYY-MM-DD).',
   },
   {
     judul: 'Format Rupiah',
+    icon: 'Wallet',
     isi: 'Semua nominal uang diketik sebagai angka biasa tanpa titik/koma (misal 5000000 untuk Rp 5.000.000) — dashboard yang otomatis memformat tampilannya.',
   },
   {
     judul: 'Penamaan Divisi',
+    icon: 'Building2',
     isi: 'Divisi yang dipakai konsisten di seluruh modul: Headhunter, B2B Internal, B2B Eksternal, Courses, LMS. Gunakan ejaan ini persis di field manapun yang meminta nama divisi supaya data bisa direkap dengan benar di halaman Finance/Kas.',
   },
 ]
