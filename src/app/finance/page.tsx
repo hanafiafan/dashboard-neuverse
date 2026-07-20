@@ -117,7 +117,7 @@ export default function FinancePage() {
             />
           </div>
 
-          <div className="grid grid-cols-4 gap-3.5 mb-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-4">
             <StatCard label="Kas Saat Ini" value={formatRp(kasSaatIni)} sub="Saldo awal + arus kas" variant="blue" />
             <StatCard label="Net Burn / Bulan" value={avgNet > 0 ? formatRp(Math.round(avgNet)) : 'Surplus'} sub="Rata-rata 3 bln terakhir" accentColor="var(--danger)" />
             <StatCard label="Runway" value={runwayTxt} sub="Sisa bulan operasional" variant="gold" icon={<HeartPulse size={18} />} />
@@ -173,7 +173,7 @@ export default function FinancePage() {
 
       {tab === 'konsolidasi' && (
         <div>
-          <div className="grid grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
             <StatCard label="Total Pemasukan" value={formatRp(totalMasuk)} variant="accent" />
             <StatCard label="Total Pengeluaran" value={formatRp(totalKeluar)} variant="blue" />
             <StatCard label="Net Cash Flow" value={formatRp(totalMasuk - totalKeluar)} variant="gold" />
@@ -207,11 +207,11 @@ export default function FinancePage() {
       )}
 
       <Modal open={modal === 'cash'} onClose={() => setModal(null)} title={editId ? 'Edit Transaksi' : '+ Tambah Transaksi'}>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Tanggal"><FormInput type="date" value={form.tanggal || ''} onChange={e => setForm(f => ({ ...f, tanggal: e.target.value }))} /></FormGroup>
           <FormGroup label="Tipe"><FormSelect value={form.tipe || ''} onChange={e => setForm(f => ({ ...f, tipe: e.target.value }))}>{[...CASH_TIPE].map(o => <option key={o}>{o}</option>)}</FormSelect></FormGroup>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Kategori"><FormInput value={form.kategori || ''} onChange={e => setForm(f => ({ ...f, kategori: e.target.value }))} placeholder="mis: Gaji, Ads..." /></FormGroup>
           <FormGroup label="Divisi"><FormSelect value={form.divisi || ''} onChange={e => setForm(f => ({ ...f, divisi: e.target.value }))}><option value="">-</option>{DIVISI.map(o => <option key={o}>{o}</option>)}</FormSelect></FormGroup>
         </div>
@@ -221,7 +221,7 @@ export default function FinancePage() {
 
       <Modal open={modal === 'rekap'} onClose={() => setModal(null)} title={editId ? 'Edit Rekap' : '+ Tambah Rekap Divisi'}>
         <FormGroup label="Divisi / Sumber"><FormInput value={form.divisi || ''} onChange={e => setForm(f => ({ ...f, divisi: e.target.value }))} /></FormGroup>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Pemasukan"><FormInput type="number" value={form.masuk || 0} onChange={e => setForm(f => ({ ...f, masuk: e.target.value }))} /></FormGroup>
           <FormGroup label="Pengeluaran"><FormInput type="number" value={form.keluar || 0} onChange={e => setForm(f => ({ ...f, keluar: e.target.value }))} /></FormGroup>
         </div>

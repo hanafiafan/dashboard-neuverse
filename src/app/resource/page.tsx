@@ -86,7 +86,7 @@ export default function ResourcePage() {
 
   return (
     <div>
-      <div className="grid grid-cols-4 gap-3.5 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-4">
         <StatCard label="Trainer Overload" value={String(overloadedTrainers)} sub="Max kapasitas tercapai" accentColor={overloadedTrainers > 0 ? 'var(--danger)' : 'var(--success)'} />
         <StatCard label="Rata-rata Utilisasi Trainer" value={`${avgTrainerUtil}%`} sub="dari kapasitas max" variant="blue" />
         <StatCard label="Staff Overload" value={String(overloadedStaff)} sub="Jam kerja penuh" accentColor={overloadedStaff > 0 ? 'var(--danger)' : 'var(--success)'} />
@@ -193,7 +193,7 @@ export default function ResourcePage() {
       {/* ───────── MODALS ───────── */}
       <Modal open={modal === 'cap'} onClose={() => setModal(null)} title={editId ? 'Edit Trainer' : '+ Tambah Trainer'}>
         <FormGroup label="Nama Trainer"><FormInput value={form.nama || ''} onChange={e => setForm(f => ({ ...f, nama: e.target.value }))} /></FormGroup>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Max Batch"><FormInput type="number" value={form.max_batch || 0} onChange={e => setForm(f => ({ ...f, max_batch: e.target.value }))} /></FormGroup>
           <FormGroup label="Batch Aktif Saat Ini"><FormInput type="number" value={form.current_batch || 0} onChange={e => setForm(f => ({ ...f, current_batch: e.target.value }))} /></FormGroup>
         </div>
@@ -207,11 +207,11 @@ export default function ResourcePage() {
       </Modal>
 
       <Modal open={modal === 'load'} onClose={() => setModal(null)} title={editId ? 'Edit Staff' : '+ Tambah Staff'}>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Nama Staff"><FormInput value={form.nama || ''} onChange={e => setForm(f => ({ ...f, nama: e.target.value }))} /></FormGroup>
           <FormGroup label="Jabatan"><FormInput value={form.jabatan || ''} onChange={e => setForm(f => ({ ...f, jabatan: e.target.value }))} /></FormGroup>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Max Jam/Bulan"><FormInput type="number" value={form.max_jam || 0} onChange={e => setForm(f => ({ ...f, max_jam: e.target.value }))} /></FormGroup>
           <FormGroup label="Jam Aktif Saat Ini"><FormInput type="number" value={form.current_jam || 0} onChange={e => setForm(f => ({ ...f, current_jam: e.target.value }))} /></FormGroup>
         </div>

@@ -135,7 +135,7 @@ export default function HeadhunterPage() {
 
       {tab === 'dashboard' && (
         <div>
-          <div className="grid grid-cols-4 gap-3.5 mb-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-4">
             <StatCard label="Total Kandidat / Posisi" value={total} sub="Semua entitas" variant="accent" />
             <StatCard label="Posisi Aktif" value={aktif} sub="Sedang berjalan" variant="blue" />
             <StatCard label="Terpenuhi" value={terp} sub="Posisi closed" variant="gold" />
@@ -267,7 +267,7 @@ export default function HeadhunterPage() {
       <Modal open={modal === 'rekrutmen'} onClose={() => setModal(null)} title={editIdx !== null ? 'Edit Rekrutmen' : '+ Tambah Rekrutmen'}>
         <FormGroup label="Posisi"><FormInput value={form.posisi || ''} onChange={e => setForm(f => ({ ...f, posisi: e.target.value }))} /></FormGroup>
         <FormGroup label="Entitas"><FormInput value={form.entitas || ''} onChange={e => setForm(f => ({ ...f, entitas: e.target.value }))} /></FormGroup>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Kategori">
             <FormSelect value={form.kategori || ''} onChange={e => setForm(f => ({ ...f, kategori: e.target.value }))}>
               {KATEGORI_HH.map(o => <option key={o}>{o}</option>)}
@@ -279,15 +279,15 @@ export default function HeadhunterPage() {
             </FormSelect>
           </FormGroup>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Tgl Mulai"><FormInput type="date" value={form.mulai || ''} onChange={e => setForm(f => ({ ...f, mulai: e.target.value }))} /></FormGroup>
           <FormGroup label="Tgl Selesai"><FormInput type="date" value={form.selesai || ''} onChange={e => setForm(f => ({ ...f, selesai: e.target.value }))} /></FormGroup>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Karyawan Hired"><FormInput value={form.karyawan || ''} onChange={e => setForm(f => ({ ...f, karyawan: e.target.value }))} /></FormGroup>
           <FormGroup label="Media / Job Portal"><FormInput value={form.media || ''} onChange={e => setForm(f => ({ ...f, media: e.target.value }))} /></FormGroup>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Lokasi Penempatan"><FormInput value={form.lokasi || ''} onChange={e => setForm(f => ({ ...f, lokasi: e.target.value }))} /></FormGroup>
           <FormGroup label="Deadline Posisi"><FormInput type="date" value={form.deadline || ''} onChange={e => setForm(f => ({ ...f, deadline: e.target.value }))} /></FormGroup>
         </div>
@@ -304,7 +304,7 @@ export default function HeadhunterPage() {
       <Modal open={modal === 'kritis'} onClose={() => setModal(null)} title={editIdx !== null ? 'Edit Posisi Kritis' : '+ Tambah Posisi Kritis'}>
         <FormGroup label="Posisi"><FormInput value={form.posisi || ''} onChange={e => setForm(f => ({ ...f, posisi: e.target.value }))} /></FormGroup>
         <FormGroup label="Entitas"><FormInput value={form.entitas || ''} onChange={e => setForm(f => ({ ...f, entitas: e.target.value }))} /></FormGroup>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Prioritas">
             <FormSelect value={form.prioritas || ''} onChange={e => setForm(f => ({ ...f, prioritas: e.target.value }))}>
               {PRIORITAS.map(o => <option key={o}>{o}</option>)}

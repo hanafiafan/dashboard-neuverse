@@ -88,7 +88,7 @@ export default function ForecastingPage() {
         </select>
       </div>
 
-      <div className="grid grid-cols-3 gap-3.5 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-4">
         <StatCard label="Total Target Revenue" value={formatRp(annualRev)} sub={`Tahun ${year}`} variant="accent" icon={<Target size={18} />} />
         <StatCard label="Total Projected Cost" value={formatRp(annualCost)} sub={`Tahun ${year}`} variant="blue" icon={<Wallet size={18} />} />
         <StatCard label="Projected Net" value={formatRp(annualRev - annualCost)} sub="Revenue - Cost" variant={annualRev >= annualCost ? 'gold' : 'default'} accentColor={annualRev < annualCost ? '#dc2626' : undefined} />
@@ -196,7 +196,7 @@ export default function ForecastingPage() {
             {DIVISI.map(d => <option key={d}>{d}</option>)}
           </FormSelect>
         </FormGroup>
-        <div className="grid grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {MONTHS.map((m, i) => (
             <FormGroup key={m} label={BULAN[i]}>
               <FormInput type="number" value={form[m] || 0} onChange={e => setForm(f => ({ ...f, [m]: e.target.value }))} />
@@ -208,7 +208,7 @@ export default function ForecastingPage() {
 
       {/* Modal: Cost */}
       <Modal open={modal === 'cost'} onClose={() => setModal(null)} title={editId ? 'Edit Cost' : '+ Tambah Cost'} maxWidth={760}>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Kategori"><FormInput value={form.kategori || ''} onChange={e => setForm(f => ({ ...f, kategori: e.target.value }))} /></FormGroup>
           <FormGroup label="Tipe">
             <FormSelect value={form.tipe || 'Fixed'} onChange={e => setForm(f => ({ ...f, tipe: e.target.value }))}>
@@ -216,7 +216,7 @@ export default function ForecastingPage() {
             </FormSelect>
           </FormGroup>
         </div>
-        <div className="grid grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {MONTHS.map((m, i) => (
             <FormGroup key={m} label={BULAN[i]}>
               <FormInput type="number" value={form[m] || 0} onChange={e => setForm(f => ({ ...f, [m]: e.target.value }))} />

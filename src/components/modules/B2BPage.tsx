@@ -112,7 +112,7 @@ export default function B2BPage({ scope }: Props) {
 
   return (
     <div>
-      <div className="mb-4 grid grid-cols-3 gap-4">
+      <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard label="Client Aktif" value={activeClients.length} sub="Dari data client" />
         <StatCard label="Pipeline" value={pipeline.length} sub="Dari data pipeline" variant="accent" />
         <StatCard label="Ratio Closed" value={activeClients.length > 0 ? (pipeline.length / activeClients.length).toFixed(2) : '0'} sub="Pipeline ÷ Client Aktif" variant="gold" />
@@ -192,7 +192,7 @@ export default function B2BPage({ scope }: Props) {
       {/* Checklist */}
       {tab === 'checklist' && (
         <div>
-          <div className="grid grid-cols-3 gap-3.5 mb-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-3.5">
             <StatCard label="Total Milestone" value={checklist.length} sub="Semua tugas klien" />
             <StatCard label="Proses (Kerja & Review)" value={checklist.filter(item => ['Proses Kerja', 'Review Internal'].includes(item.status)).length} sub="Dalam pengerjaan" variant="blue" />
             {(() => {
@@ -261,7 +261,7 @@ export default function B2BPage({ scope }: Props) {
       <Modal open={modal === 'client'} onClose={() => setModal(null)} title={editId ? 'Edit Client' : '+ Tambah Client'}>
         <FormGroup label="Nama Client"><FormInput value={form.nama || ''} onChange={e => setForm(f => ({ ...f, nama: e.target.value }))} /></FormGroup>
         <FormGroup label="Jenis Layanan"><FormInput value={form.layanan || ''} onChange={e => setForm(f => ({ ...f, layanan: e.target.value }))} /></FormGroup>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Nilai (Rp)"><FormInput type="number" value={form.nilai || 0} onChange={e => setForm(f => ({ ...f, nilai: e.target.value }))} /></FormGroup>
           <FormGroup label="PIC"><FormInput value={form.pic || ''} onChange={e => setForm(f => ({ ...f, pic: e.target.value }))} /></FormGroup>
         </div>
@@ -276,11 +276,11 @@ export default function B2BPage({ scope }: Props) {
       <Modal open={modal === 'pipeline'} onClose={() => setModal(null)} title={editId ? 'Edit Pipeline' : '+ Tambah Pipeline'}>
         <FormGroup label="Nama Prospek"><FormInput value={form.nama || ''} onChange={e => setForm(f => ({ ...f, nama: e.target.value }))} /></FormGroup>
         <FormGroup label="Layanan"><FormInput value={form.layanan || ''} onChange={e => setForm(f => ({ ...f, layanan: e.target.value }))} /></FormGroup>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Est. Nilai"><FormInput type="number" value={form.nilai || 0} onChange={e => setForm(f => ({ ...f, nilai: e.target.value }))} /></FormGroup>
           <FormGroup label="PIC"><FormInput value={form.pic || ''} onChange={e => setForm(f => ({ ...f, pic: e.target.value }))} /></FormGroup>
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <FormGroup label="Stage"><FormSelect value={form.stage || ''} onChange={e => setForm(f => ({ ...f, stage: e.target.value }))}>{STAGE_B2B.map(o => <option key={o}>{o}</option>)}</FormSelect></FormGroup>
           <FormGroup label="Prob %"><FormInput type="number" value={form.prob || 0} onChange={e => setForm(f => ({ ...f, prob: e.target.value }))} /></FormGroup>
           <FormGroup label="Lead Score"><FormInput type="number" value={form.score || 0} onChange={e => setForm(f => ({ ...f, score: e.target.value }))} /></FormGroup>
@@ -296,7 +296,7 @@ export default function B2BPage({ scope }: Props) {
           </FormSelect>
         </FormGroup>
         <FormGroup label="Tugas / Milestone"><FormInput value={form.task || ''} onChange={e => setForm(f => ({ ...f, task: e.target.value }))} /></FormGroup>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Target Date"><FormInput type="date" value={form.target_date || ''} onChange={e => setForm(f => ({ ...f, target_date: e.target.value }))} /></FormGroup>
           <FormGroup label="Status"><FormSelect value={form.status || ''} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>{CHK_STATUS.map(o => <option key={o}>{o}</option>)}</FormSelect></FormGroup>
         </div>
@@ -307,7 +307,7 @@ export default function B2BPage({ scope }: Props) {
       <Modal open={modal === 'progres'} onClose={() => setModal(null)} title="+ Tambah Fase Progres">
         <FormGroup label="Fase / Proses"><FormInput value={form.fase || ''} onChange={e => setForm(f => ({ ...f, fase: e.target.value }))} placeholder="contoh: Kickoff, Delivery..." /></FormGroup>
         <FormGroup label="Keterangan Implementasi"><FormInput value={form.keterangan || ''} onChange={e => setForm(f => ({ ...f, keterangan: e.target.value }))} /></FormGroup>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Tanggal"><FormInput type="date" value={form.tanggal || ''} onChange={e => setForm(f => ({ ...f, tanggal: e.target.value }))} /></FormGroup>
           <FormGroup label="Status"><FormSelect value={form.status || ''} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>{PROGRES_STATUS.map(o => <option key={o}>{o}</option>)}</FormSelect></FormGroup>
         </div>

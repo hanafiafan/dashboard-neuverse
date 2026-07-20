@@ -100,7 +100,7 @@ export default function MarketingPage() {
       {/* ───────── LEADS TAB ───────── */}
       {tab === 'leads' && (
         <div>
-          <div className="grid grid-cols-4 gap-3.5 mb-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-4">
             <StatCard label="Total Leads" value={String(leads.length)} sub="Semua lead aktif" variant="blue" />
             <StatCard label="Hot" value={String(hot)} sub="Score ≥ 70" accentColor="var(--danger)" icon={<Flame size={16} className="text-danger" />} />
             <StatCard label="Warm" value={String(warm)} sub="Score 40–69" accentColor="var(--warning)" icon={<CloudSun size={16} className="text-warning" />} />
@@ -170,7 +170,7 @@ export default function MarketingPage() {
       {/* ───────── FUNNEL TAB ───────── */}
       {tab === 'funnel' && (
         <div>
-          <div className="grid grid-cols-5 gap-3.5 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 mb-4">
             {FUNNEL_STAGE.map(s => (
               <div key={s} className="bg-white border border-border rounded-xl py-4 px-3.5 text-center">
                 <div className="text-[1.6rem] font-extrabold text-accent">{funnel[s] || 0}</div>
@@ -235,7 +235,7 @@ export default function MarketingPage() {
       {/* ───────── MODALS ───────── */}
       <Modal open={modal === 'lead'} onClose={() => setModal(null)} title={editId ? 'Edit Lead' : '+ Tambah Lead'}>
         <FormGroup label="Nama Lead"><FormInput value={form.nama || ''} onChange={e => setForm(f => ({ ...f, nama: e.target.value }))} /></FormGroup>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Channel">
             <FormSelect value={form.channel || ''} onChange={e => setForm(f => ({ ...f, channel: e.target.value }))}>
               {LEAD_CH.map(o => <option key={o}>{o}</option>)}
@@ -258,7 +258,7 @@ export default function MarketingPage() {
             {LEAD_CH.map(o => <option key={o}>{o}</option>)}
           </FormSelect>
         </FormGroup>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Biaya (Rp)"><FormInput type="number" value={form.biaya || 0} onChange={e => setForm(f => ({ ...f, biaya: e.target.value }))} /></FormGroup>
           <FormGroup label="Jumlah Leads"><FormInput type="number" value={form.leads_count || 0} onChange={e => setForm(f => ({ ...f, leads_count: e.target.value }))} /></FormGroup>
         </div>
@@ -267,7 +267,7 @@ export default function MarketingPage() {
 
       <Modal open={modal === 'content'} onClose={() => setModal(null)} title={editId ? 'Edit Konten' : '+ Tambah Konten'}>
         <FormGroup label="Judul Konten"><FormInput value={form.judul || ''} onChange={e => setForm(f => ({ ...f, judul: e.target.value }))} /></FormGroup>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Platform">
             <FormSelect value={form.platform || ''} onChange={e => setForm(f => ({ ...f, platform: e.target.value }))}>
               {PLATFORM.map(o => <option key={o}>{o}</option>)}
@@ -279,7 +279,7 @@ export default function MarketingPage() {
             </FormSelect>
           </FormGroup>
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <FormGroup label="Views"><FormInput type="number" value={form.views || 0} onChange={e => setForm(f => ({ ...f, views: e.target.value }))} /></FormGroup>
           <FormGroup label="Engagement"><FormInput type="number" value={form.engagement || 0} onChange={e => setForm(f => ({ ...f, engagement: e.target.value }))} /></FormGroup>
           <FormGroup label="Leads Gen"><FormInput type="number" value={form.leads_gen || 0} onChange={e => setForm(f => ({ ...f, leads_gen: e.target.value }))} /></FormGroup>

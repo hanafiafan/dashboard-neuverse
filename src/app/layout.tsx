@@ -20,9 +20,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ToastProvider>
           <ConfirmProvider>
             <Sidebar />
-            <div className="flex-1 flex flex-col" style={{ marginLeft: 'var(--sidebar-w)' }}>
+            <div className="flex-1 flex flex-col min-w-0 md:ml-[var(--sidebar-w)]">
               <Topbar />
-              <main className="flex-1 p-6">
+              <main className="flex-1 p-4 md:p-6 overflow-x-hidden">
                 {children}
               </main>
             </div>

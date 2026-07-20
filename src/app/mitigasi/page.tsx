@@ -63,7 +63,7 @@ export default function MitigasiPage() {
 
   return (
     <div>
-      <div className="grid grid-cols-4 gap-3.5 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-4">
         <StatCard label="Total Risiko" value={String(rows.length)} sub="Semua risiko terdaftar" />
         <StatCard label="Terbuka" value={String(terbuka)} sub="Belum selesai" variant="blue" />
         <StatCard label="Kritis" value={String(kritis)} sub="Prioritas Tinggi aktif" accentColor="var(--danger)" />
@@ -118,7 +118,7 @@ export default function MitigasiPage() {
       <Modal open={modal} onClose={() => setModal(false)} title={editId ? 'Edit Risiko' : '+ Tambah Risiko'}>
         <FormGroup label="Risiko"><FormInput value={form.risiko || ''} onChange={e => setForm(f => ({ ...f, risiko: e.target.value }))} /></FormGroup>
         <FormGroup label="Dampak"><FormInput value={form.dampak || ''} onChange={e => setForm(f => ({ ...f, dampak: e.target.value }))} /></FormGroup>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Probabilitas">
             <FormSelect value={form.probabilitas || 'Rendah'} onChange={e => setForm(f => ({ ...f, probabilitas: e.target.value }))}>
               <option>Rendah</option><option>Sedang</option><option>Tinggi</option>
@@ -130,7 +130,7 @@ export default function MitigasiPage() {
             </FormSelect>
           </FormGroup>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="PIC"><FormInput value={form.pic || ''} onChange={e => setForm(f => ({ ...f, pic: e.target.value }))} /></FormGroup>
           <FormGroup label="Deadline"><FormInput type="date" value={form.deadline || ''} onChange={e => setForm(f => ({ ...f, deadline: e.target.value }))} /></FormGroup>
         </div>

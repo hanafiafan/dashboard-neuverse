@@ -74,7 +74,7 @@ export default function KasPage() {
 
   return (
     <div>
-      <div className="grid grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
         <StatCard label="Total Pemasukan" value={formatRp(allTotals.m)} accentColor="var(--success)" />
         <StatCard label="Total Pengeluaran" value={formatRp(allTotals.k)} accentColor="var(--danger)" />
         <StatCard label="Saldo" value={formatRp(allTotals.m - allTotals.k)} accentColor="var(--accent)" />
@@ -128,7 +128,7 @@ export default function KasPage() {
             const data = divData(tab); const tot = totals(data)
             return (
               <>
-                <div className="grid grid-cols-3 gap-3.5 mb-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-3.5">
                   <StatCard label="Pemasukan" value={formatRp(tot.m)} accentColor="var(--success)" />
                   <StatCard label="Pengeluaran" value={formatRp(tot.k)} accentColor="var(--danger)" />
                   <StatCard label="Saldo" value={formatRp(tot.m - tot.k)} accentColor="var(--accent)" />
@@ -163,7 +163,7 @@ export default function KasPage() {
             {TABS.filter(t => t.key !== 'master').map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
           </FormSelect>
         </FormGroup>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Jenis">
             <FormSelect value={form.jenis || 'masuk'} onChange={e => setForm(f => ({ ...f, jenis: e.target.value }))}>
               <option value="masuk">Pemasukan</option>

@@ -197,14 +197,14 @@ export default function HomeClient() {
       </Card>
 
       {/* KPI Grid */}
-      <div className="grid grid-cols-4 gap-3.5 mb-[18px]">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-[18px]">
         <StatCard label="Total Klien Aktif" value={stats.klienAktif} sub="B2B Internal + Eksternal" variant="accent" />
         <StatCard label="Revenue Bulan Ini" value={formatRp(stats.revenueBulanIni)} sub="Dari Finance" variant="blue" />
         <StatCard label="Posisi Terpenuhi" value={stats.posisiTerpenuhi} sub="Dari Headhunter" variant="gold" />
         <StatCard label="Course Pipeline" value={stats.coursePipeline} sub="Dari Courses" accentColor="var(--success)" />
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-[18px]">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-[18px]">
         <StatCard label="Runway" value={stats.runway} sub="Sisa bulan operasional" accentColor="var(--danger)" icon={<HeartPulse size={18} />} />
         <StatCard label="Net Burn / Bln" value={stats.netBurn > 0 ? formatRp(Math.round(stats.netBurn)) : 'Surplus'} sub="Rata-rata 3 bln" icon={<TrendingDown size={18} />} />
         <StatCard label="Hot Leads Overdue" value={stats.hotLeadsOverdue} sub="Butuh follow-up" accentColor="var(--warning)" icon={<Flame size={18} />} />
@@ -212,7 +212,7 @@ export default function HomeClient() {
 
       {/* Target & Capaian */}
       <Card icon={<Target size={16} />} title="Target & Capaian (berdasarkan Forecasting)">
-        <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
           <StatCard label="Target Revenue" value={formatRp(stats.targetRevenue)} sub="Total forecast" />
           <StatCard label="Capaian Revenue" value={formatRp(stats.realisasiRevenue)} sub="Realisasi" />
           <StatCard
@@ -246,7 +246,7 @@ export default function HomeClient() {
         )}
       </Card>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard label="Checklist Overdue" value={stats.checklistOverdue} sub="Milestone B2B lewat target" accentColor="var(--accent-hover)" icon={<CheckCircle2 size={18} />} />
         <StatCard label="Total Klien" value={stats.klienAktif} sub="Aktif saat ini" icon={<BarChart3 size={18} />} />
         <StatCard label="Courses" value={stats.coursePipeline} sub="Pipeline & Akan Datang" icon={<TrendingUp size={18} />} />

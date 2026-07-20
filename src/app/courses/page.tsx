@@ -145,11 +145,11 @@ export default function CoursesPage() {
       {(modal === 'offline' || modal === 'online') && (
         <Modal open={true} onClose={() => setModal(null)} title={editId ? 'Edit Batch' : '+ Tambah Batch'}>
           <FormGroup label="Nama Batch"><FormInput value={form.nama || ''} onChange={e => setForm(f => ({ ...f, nama: e.target.value }))} /></FormGroup>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <FormGroup label="Tanggal"><FormInput type="date" value={form.tanggal || ''} onChange={e => setForm(f => ({ ...f, tanggal: e.target.value }))} /></FormGroup>
             <FormGroup label={modal === 'online' ? 'Platform' : 'Tempat'}><FormInput value={form.tempat || ''} onChange={e => setForm(f => ({ ...f, tempat: e.target.value }))} /></FormGroup>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <FormGroup label="Trainer"><FormInput value={form.trainer || ''} onChange={e => setForm(f => ({ ...f, trainer: e.target.value }))} /></FormGroup>
             <FormGroup label="Peserta"><FormInput type="number" value={form.peserta || 0} onChange={e => setForm(f => ({ ...f, peserta: e.target.value }))} /></FormGroup>
           </div>
@@ -162,7 +162,7 @@ export default function CoursesPage() {
       <Modal open={modal === 'kelas'} onClose={() => setModal(null)} title={editId ? 'Edit Kelas' : '+ Tambah Kelas'}>
         <FormGroup label="Nama Kelas"><FormInput value={form.nama || ''} onChange={e => setForm(f => ({ ...f, nama: e.target.value }))} /></FormGroup>
         <FormGroup label="Kategori"><FormInput value={form.kategori || ''} onChange={e => setForm(f => ({ ...f, kategori: e.target.value }))} /></FormGroup>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <FormGroup label="Modul"><FormInput type="number" value={form.modul || 0} onChange={e => setForm(f => ({ ...f, modul: e.target.value }))} /></FormGroup>
           <FormGroup label="Peserta"><FormInput type="number" value={form.peserta || 0} onChange={e => setForm(f => ({ ...f, peserta: e.target.value }))} /></FormGroup>
           <FormGroup label="Progress %"><FormInput type="number" value={form.progress || 0} onChange={e => setForm(f => ({ ...f, progress: e.target.value }))} /></FormGroup>

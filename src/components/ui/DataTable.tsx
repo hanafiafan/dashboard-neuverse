@@ -1,5 +1,6 @@
-import { ReactNode, Children } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
+'use client'
+import { ReactNode, Children, useState, useEffect } from 'react'
+import { Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface Column {
   key: string
@@ -14,8 +15,18 @@ interface DataTableProps {
   minWidth?: string
 }
 
+const PAGE_SIZE = 15
+
 export default function DataTable({ columns, children, emptyMessage, minWidth }: DataTableProps) {
-  const hasRows = Children.toArray(children).filter(Boolean).length > 0;
+  const rows = Children.toArray(children).filter(Boolean)
+  const hasRows = rows.length > 0
+
+  const [page, setPage] = useState(1)
+  useEffect(() => { setPage(1) }, [rows.length])
+
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const visible = rows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
   return (
     <div className="overflow-x-auto">
@@ -33,11 +44,37 @@ export default function DataTable({ columns, children, emptyMessage, minWidth }:
             ))}
           </tr>
         </thead>
-        <tbody className="[&>tr:hover>td]:bg-slate-50">{children}</tbody>
+        <tbody className="[&>tr:hover>td]:bg-slate-50">{visible}</tbody>
       </table>
+
       {!hasRows && emptyMessage && (
         <div className="text-center py-6 text-muted text-[0.85rem]">
           {emptyMessage}
+        </div>
+      )}
+
+      {rows.length > PAGE_SIZE && (
+        <div className="flex items-center justify-between px-1 pt-3 text-[0.78rem] text-muted">
+          <span>
+            Menampilkan {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, rows.length)} dari {rows.length} baris
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setPage(p => p - 1)}
+              className="flex items-center justify-center w-7 h-7 rounded-md border border-border bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft size={14} />
+            </button>
+            <span className="px-2 font-semibold text-primary">{currentPage}/{totalPages}</span>
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setPage(p => p + 1)}
+              className="flex items-center justify-center w-7 h-7 rounded-md border border-border bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <ChevronRight size={14} />
+            </button>
+          </div>
         </div>
       )}
     </div>

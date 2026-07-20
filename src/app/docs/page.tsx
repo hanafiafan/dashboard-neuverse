@@ -97,8 +97,8 @@ export default function DocsPage() {
   const activeModule = MODULES.find(m => m.id === active)
 
   return (
-    <div className="grid grid-cols-[220px_1fr] gap-5 items-start">
-      <nav className="sticky top-[76px]">
+    <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-5 items-start">
+      <nav className="md:sticky md:top-[76px]">
         {navGroups.map(group => (
           <div key={group.label} className="mb-4">
             <div className="text-[0.65rem] uppercase tracking-wide text-muted font-semibold px-2 mb-1.5">

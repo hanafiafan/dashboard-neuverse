@@ -224,7 +224,7 @@ export default function ClientSuccessPage() {
       {/* ───────── MODALS ───────── */}
       <Modal open={modal === 'nps'} onClose={() => setModal(null)} title={editId ? 'Edit NPS' : '+ Tambah Data NPS'}>
         <FormGroup label="Nama Klien"><FormInput value={form.klien || ''} onChange={e => setForm(f => ({ ...f, klien: e.target.value }))} /></FormGroup>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Skor NPS (0–10)">
             <FormInput type="number" min={0} max={10} value={form.skor ?? 8} onChange={e => setForm(f => ({ ...f, skor: e.target.value }))} />
           </FormGroup>
@@ -235,12 +235,12 @@ export default function ClientSuccessPage() {
       </Modal>
 
       <Modal open={modal === 'fb'} onClose={() => setModal(null)} title={editId ? 'Edit Feedback' : '+ Tambah Feedback'}>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Klien"><FormInput value={form.klien || ''} onChange={e => setForm(f => ({ ...f, klien: e.target.value }))} /></FormGroup>
           <FormGroup label="Kategori"><FormInput value={form.kategori || ''} onChange={e => setForm(f => ({ ...f, kategori: e.target.value }))} placeholder="mis: Kelas, Trainer, Admin..." /></FormGroup>
         </div>
         <FormGroup label="Isi Feedback"><FormInput value={form.isi || ''} onChange={e => setForm(f => ({ ...f, isi: e.target.value }))} /></FormGroup>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <FormGroup label="Sentimen">
             <FormSelect value={form.sentimen || SENTIMEN[1]} onChange={e => setForm(f => ({ ...f, sentimen: e.target.value }))}>
               {SENTIMEN.map(o => <option key={o}>{o}</option>)}
